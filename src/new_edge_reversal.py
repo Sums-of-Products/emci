@@ -4,15 +4,11 @@ from src.probabilities import ScoreManager
 from scipy.special import logsumexp
 
 
-# def parent_set_score(Xi, pa_i, n):
-#     return get_local_score(Xi, frozenset(pa_i), n)
-
-# Calculates Z (18) returns
-
 class REV:
     def __init__(self, score_manager: ScoreManager):
         self.score_manager = score_manager
 
+    # Calculates Z (18)
     def get_Z1(self, M: ig.Graph, X) -> (int, list[set]):
         parent_sets = self.score_manager.scores[X].keys()
 

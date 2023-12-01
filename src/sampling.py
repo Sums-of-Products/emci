@@ -7,9 +7,6 @@ import igraph as ig
 from src.probabilities import R, ScoreManager
 import random
 
-# Increase recursion limit from 10^3
-sys.setrecursionlimit(10**4)
-
 
 def sample(G: ig.Graph, N: int, additional_steps, score_manager: ScoreManager):
     G_i: ig.Graph = G.copy()
