@@ -38,14 +38,14 @@ ax_kde.get_yaxis().set_visible(False)
 
 # Plot
 for i in range(0, 2):
-    steps = sample(G, n, [], score_manager)
+    steps = sample(G, n, [], score_manager, True)
     scores = [step[1] for step in steps][len(steps)//5:]
     ax_main.plot(range(len(scores)), scores, color='blue')
     sns.kdeplot(scores, ax=ax_kde, vertical=True, color='blue', fill=True)
 
 # Plot with REV
 for i in range(0, 2):
-    steps = sample(G, n, ['rev'], score_manager)
+    steps = sample(G, n, ['rev'], score_manager, True)
     scores = [step[1] for step in steps][len(steps)//5:]
     ax_main.plot(range(len(scores)), scores, color='green')
     sns.kdeplot(scores, ax=ax_kde, vertical=True, color='green', fill=True)

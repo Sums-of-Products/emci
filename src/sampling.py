@@ -8,12 +8,13 @@ from src.probabilities import R, ScoreManager
 import random
 
 
-def sample(G: ig.Graph, N: int, additional_steps, score_manager: ScoreManager):
+def sample(G: ig.Graph, N: int, additional_steps, score_manager: ScoreManager, show_progress=False):
     G_i: ig.Graph = G.copy()
     steps: list[tuple(ig.Graph, float)] = []
 
     is_REV = 'rev' in additional_steps
-    pbar = tqdm(range(N), bar_format='{desc}: {bar}')
+    pbar = tqdm(
+        range(N), bar_format='{desc}: {bar}') if show_progress else range(N)
     for i in pbar:
         G_i_plus_1, step_type = propose_next(G_i, is_REV, score_manager)
 
@@ -27,7 +28,8 @@ def sample(G: ig.Graph, N: int, additional_steps, score_manager: ScoreManager):
             if (np.random.uniform() <= A):
 
                 G_i = G_i_plus_1
-        pbar.set_description(f'Score: {current_score:.2f}')
+        if (show_progress):
+            pbar.set_description(f'Score: {current_score:.2f}')
         steps.append((G_i, current_score))
 
     return steps
