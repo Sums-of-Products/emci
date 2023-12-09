@@ -1,8 +1,8 @@
-import sys
 import numpy as np
 from src.new_edge_reversal import REV
 from utils import get_es_diff
 import igraph as ig
+from tqdm import tqdm
 
 from src.probabilities import R, ScoreManager
 import random
@@ -13,24 +13,21 @@ def sample(G: ig.Graph, N: int, additional_steps, score_manager: ScoreManager):
     steps: list[tuple(ig.Graph, float)] = []
 
     is_REV = 'rev' in additional_steps
-
-    for i in range(N):
+    pbar = tqdm(range(N), bar_format='{desc}: {bar}')
+    for i in pbar:
         G_i_plus_1, step_type = propose_next(G_i, is_REV, score_manager)
 
         current_score = score_manager.get_score(G_i)
         proposed_score = score_manager.get_score(G_i_plus_1)
 
         if (step_type == 'REV'):
-            print(
-                f'{i} {current_score:.2f} {proposed_score:.2f}{get_es_diff(G_i_plus_1, G_i)}, {step_type}')
             G_i = G_i_plus_1
         elif (step_type):
             A = np.min([1, R(current_score, proposed_score)])
             if (np.random.uniform() <= A):
-                print(
-                    f'{i} {current_score:.2f} {proposed_score:.2f} {get_es_diff(G_i_plus_1, G_i)}, {step_type}')
-                G_i = G_i_plus_1
 
+                G_i = G_i_plus_1
+        pbar.set_description(f'Score: {current_score:.2f}')
         steps.append((G_i, current_score))
 
     return steps

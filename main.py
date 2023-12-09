@@ -1,10 +1,11 @@
 import igraph as ig
 import seaborn as sns
 from matplotlib import pyplot as plt
-import numpy as np
 from src.probabilities import ScoreManager
 from src.sampling import sample
 import sys
+import warnings
+warnings.filterwarnings('ignore')
 
 sns.set(style="whitegrid")
 
