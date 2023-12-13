@@ -18,12 +18,13 @@ def sample(G: ig.Graph, N: int, additional_steps, score_manager: ScoreManager, s
     for i in pbar:
         G_i_plus_1, step_type = propose_next(G_i, is_REV, score_manager)
 
+        # Need to get prior separately, then beta applied to score
         current_score = score_manager.get_score(G_i)
         proposed_score = score_manager.get_score(G_i_plus_1)
 
         if (step_type == 'REV'):
             G_i = G_i_plus_1
-        elif (step_type):
+        else:
             A = np.min([1, R(current_score, proposed_score)])
             if (np.random.uniform() <= A):
 
@@ -35,6 +36,7 @@ def sample(G: ig.Graph, N: int, additional_steps, score_manager: ScoreManager, s
     return steps
 
 
+# TODO: Add an option for definite REV with probability 1
 def propose_next(G_i: ig.Graph, is_REV, score_manager: ScoreManager):
     a, b = random.sample(list(G_i.vs), k=2)
     G_i_plus_1: ig.Graph = G_i.copy()

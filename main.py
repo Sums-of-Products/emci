@@ -38,7 +38,9 @@ ax_kde.get_yaxis().set_visible(False)
 
 # Plot
 for i in range(0, 2):
+    # TODO: For each chain, runs one step, allow for generated.
     steps = sample(G, n, [], score_manager, True)
+
     scores = [step[1] for step in steps][len(steps)//5:]
     ax_main.plot(range(len(scores)), scores, color='blue')
     sns.kdeplot(scores, ax=ax_kde, vertical=True, color='blue', fill=True)
