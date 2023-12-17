@@ -8,35 +8,41 @@ from src.probabilities import R, ScoreManager
 import random
 
 
-def sample(G: ig.Graph, N: int, additional_steps, score_manager: ScoreManager, show_progress=False):
+def sample(G: ig.Graph, N: int, additional_steps, score_manager: ScoreManager, beta=1, show_progress=False):
+    """ Generator. 
+        yields (Graph, score)
+    """
     G_i: ig.Graph = G.copy()
-    steps: list[tuple(ig.Graph, float)] = []
 
     is_REV = 'rev' in additional_steps
+
     pbar = tqdm(
-        range(N), bar_format='{desc}: {bar}') if show_progress else range(N)
+        range(N), bar_format='{desc}: {bar}') if show_progress else iter(lambda: True, None)
+
     for i in pbar:
         G_i_plus_1, step_type = propose_next(G_i, is_REV, score_manager)
 
-        # Need to get prior separately, then beta applied to score
-        current_score = score_manager.get_score(G_i)
-        proposed_score = score_manager.get_score(G_i_plus_1)
+        # Need to get prior separately, then beta applied to likelihood
+        likelihood_i, prior_i = score_manager.get_score(G_i)
+        likelihood_i_p_1, prior_i_p_1 = score_manager.get_score(G_i_plus_1)
 
+        # Temperature
+        likelihood_i_p_1 *= beta
         if (step_type == 'REV'):
-            G_i = G_i_plus_1
+            G_i, likelihood_i, prior_i = G_i_plus_1, likelihood_i_p_1, prior_i_p_1
         else:
-            A = np.min([1, R(current_score, proposed_score)])
+            A = np.min(
+                [1, R(likelihood_i, likelihood_i_p_1, prior_i, prior_i_p_1)])
             if (np.random.uniform() <= A):
+                G_i, likelihood_i, prior_i = G_i_plus_1, likelihood_i_p_1, prior_i_p_1
 
-                G_i = G_i_plus_1
+        score = likelihood_i + prior_i
         if (show_progress):
-            pbar.set_description(f'Score: {current_score:.2f}')
-        steps.append((G_i, current_score))
+            pbar.set_description(f'Score: {score:.2f}')
 
-    return steps
+        yield (G_i, score)
 
 
-# TODO: Add an option for definite REV with probability 1
 def propose_next(G_i: ig.Graph, is_REV, score_manager: ScoreManager):
     a, b = random.sample(list(G_i.vs), k=2)
     G_i_plus_1: ig.Graph = G_i.copy()

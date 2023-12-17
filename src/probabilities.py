@@ -17,45 +17,53 @@ class ScoreManager:
 
         return f(len(list(M.vs)), G_i_count).prod()
 
-    def get_local_score(self, v, pa_i, n):
-        k = len(pa_i)
-
+    def get_local_likelihood(self, v, pa_i, n):
         try:
             res = self.scores[v][pa_i]
-
-            # Use Koivisto prior
-            prior = np.log(1 / binom(n, k))
-            res += prior
         except KeyError:
             res = -np.inf
 
         return res
 
+    def get_local_prior(self, v, pa_i, n):
+        k = len(pa_i)
+
+        # Use Koivisto prior
+        prior = np.log(1 / binom(n, k))
+        return prior
+
+    def get_local_score(self, v, pa_i, n):
+        return self.get_local_likelihood(v, pa_i, n) + self.get_local_prior(v, pa_i, n)
+
     def get_score(self, G: ig.Graph):
-        score = 0
+        likelihood = 0
+        prior = 0
+
         n = len(G.vs)
 
         for v in G.vs:
             pi = frozenset(map(lambda x: x, G.predecessors(v)))
-            local_score = self.get_local_score(v.index, pi, n)
+            local_score, local_prior = self.get_local_likelihood(
+                v.index, pi, n), self.get_local_prior(v.index, pi, n)
 
             # If it is inf, just return
             if (local_score == -np.inf):
-                return local_score
+                return local_score, local_prior
 
-            score += local_score
+            likelihood += local_score
+            prior += local_prior
 
-        return score
+        return likelihood, prior
 
 
-def R(current_score, proposed_score):
-    if (proposed_score == -np.inf):
+def R(likelihood_i, likelihood_i_p_1, prior_i, prior_i_p_1):
+    if (likelihood_i_p_1 == -np.inf):
         return 0
 
     # Prevent overlow
-    if (proposed_score - current_score > 700):
-        exp = 1
+    if (likelihood_i_p_1 - likelihood_i > 400):
+        res = 1
     else:
-        exp = np.exp(proposed_score - current_score)
+        res = np.exp(likelihood_i_p_1 + prior_i_p_1 - likelihood_i - prior_i)
 
-    return exp
+    return res
