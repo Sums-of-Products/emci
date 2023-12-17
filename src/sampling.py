@@ -22,12 +22,12 @@ def sample(G: ig.Graph, N: int, additional_steps, score_manager: ScoreManager, b
     for i in pbar:
         G_i_plus_1, step_type = propose_next(G_i, is_REV, score_manager)
 
-        # Need to get prior separately, then beta applied to likelihood
         likelihood_i, prior_i = score_manager.get_score(G_i)
         likelihood_i_p_1, prior_i_p_1 = score_manager.get_score(G_i_plus_1)
 
         # Temperature
         likelihood_i_p_1 *= beta
+
         if (step_type == 'REV'):
             G_i, likelihood_i, prior_i = G_i_plus_1, likelihood_i_p_1, prior_i_p_1
         else:
@@ -40,7 +40,7 @@ def sample(G: ig.Graph, N: int, additional_steps, score_manager: ScoreManager, b
         if (show_progress):
             pbar.set_description(f'Score: {score:.2f}')
 
-        yield (G_i, score)
+        yield G_i, score
 
 
 def propose_next(G_i: ig.Graph, is_REV, score_manager: ScoreManager):

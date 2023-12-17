@@ -38,7 +38,6 @@ ax_kde.get_yaxis().set_visible(False)
 
 # Plot
 for i in range(0, 2):
-    # TODO: For each chain, runs one step, allow for generated.
     gen_sample = sample(G, n, [], score_manager, 1, True)
     steps = list(gen_sample)
 
