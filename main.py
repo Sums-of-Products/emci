@@ -1,8 +1,9 @@
 import igraph as ig
 import seaborn as sns
 from matplotlib import pyplot as plt
+from src.partition_mcmc import partition_mcmc
 from src.probabilities import ScoreManager
-from src.sampling import sample
+from src.mcmc import mcmc
 import sys
 import warnings
 warnings.filterwarnings('ignore')
@@ -36,23 +37,49 @@ ax_kde.set_xlabel('Density')
 ax_kde.set_ylabel('')
 ax_kde.get_yaxis().set_visible(False)
 
+colors = ['blue', 'green', 'red', 'magenta']
+variations = [[], ['rev']]
 # Plot
 for i in range(0, 2):
-    gen_sample = sample(G, n, [], score_manager, 1, True)
-    steps = list(gen_sample)
+    sample_generator = mcmc(G, n, [], score_manager, 1, True)
+    steps = list(sample_generator)
 
-    scores = [step[1] for step in steps]
-    ax_main.plot(range(len(scores)), scores, color='blue')
+    scores = [step[1] for step in steps][-len(steps)//2:]
+    ax_main.plot(range(len(scores)), scores, color='blue', label="Structural")
     sns.kdeplot(scores, ax=ax_kde, vertical=True, color='blue', fill=True)
 
 # Plot with REV
 for i in range(0, 2):
-    gen_sample = sample(G, n, ['rev'], score_manager, 1, True)
-    steps = list(gen_sample)
+    sample_generator = mcmc(G, n, ['rev'], score_manager, 1, True)
+    steps = list(sample_generator)
 
-    scores = [step[1] for step in steps]
-    ax_main.plot(range(len(scores)), scores, color='green')
+    scores = [step[1] for step in steps][-len(steps)//2:]
+    ax_main.plot(range(len(scores)), scores,
+                 color='green', label="Structural w/ REV")
     sns.kdeplot(scores, ax=ax_kde, vertical=True, color='green', fill=True)
 
 
+for i in range(0, 2):
+    # Partition
+    partition_sample_generator = partition_mcmc(
+        G, n, ['rev'], score_manager, True)
+    steps = list(partition_sample_generator)
+
+    scores = [step[1] for step in steps][-len(steps)//2:]
+    ax_main.plot(range(len(scores)), scores, color='red',
+                 label="Partition w/ REV")
+    sns.kdeplot(scores, ax=ax_kde, vertical=True, color='red', fill=True)
+
+for i in range(0, 2):
+    # Partition with MES
+    partition_sample_generator = partition_mcmc(
+        G, n, ['rev', 'mes'], score_manager, True)
+    steps = list(partition_sample_generator)
+
+    scores = [step[1] for step in steps][-len(steps)//2:]
+    ax_main.plot(range(len(scores)), scores, color='magenta',
+                 label="Partition w/ REV & MES")
+    sns.kdeplot(scores, ax=ax_kde, vertical=True, color='magenta', fill=True)
+
+plt.legend()
 plt.show()

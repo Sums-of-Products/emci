@@ -8,7 +8,7 @@ from src.probabilities import R, ScoreManager
 import random
 
 
-def sample(G: ig.Graph, N: int, additional_steps, score_manager: ScoreManager, beta=1, show_progress=False):
+def mcmc(G: ig.Graph, N: int, additional_steps: list[str], score_manager: ScoreManager, beta=1, show_progress=False):
     """ Generator. 
         yields (Graph, score)
     """
