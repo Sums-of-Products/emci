@@ -2,7 +2,7 @@ import igraph as ig
 import seaborn as sns
 from matplotlib import pyplot as plt
 from src.partition_mcmc import partition_mcmc
-from src.probabilities import ScoreManager
+from src.utils import ScoreManager
 from src.mcmc import mcmc
 import sys
 import warnings

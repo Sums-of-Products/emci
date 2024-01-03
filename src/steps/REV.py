@@ -1,6 +1,6 @@
 import igraph as ig
 import numpy as np
-from src.probabilities import ScoreManager
+from src.utils import ScoreManager
 from scipy.special import logsumexp
 
 

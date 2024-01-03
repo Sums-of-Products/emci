@@ -1,6 +1,5 @@
 import random
 import igraph as ig
-from sampling import propose_markov_equivalent
 from utils import plot
 import itertools
 from functools import reduce, cache
@@ -8,9 +7,9 @@ import numpy as np
 from scipy.special import binom
 import copy
 from tqdm import tqdm
-from src.new_edge_reversal import REV
+from src.steps import MES, REV
 
-from src.probabilities import ScoreManager
+from src.utils import ScoreManager
 
 max_parents_size = 3
 
@@ -23,7 +22,7 @@ def partition_mcmc(G: ig.Graph, N, additional_steps, score_manager: ScoreManager
     is_MES = 'mes' in additional_steps
     is_REV = 'rev' in additional_steps
 
-    new_edge_reversal_move = REV(score_manager).new_edge_reversal_move
+    REV_move = REV(score_manager).new_edge_reversal_move
 
     A_i: list[set] = create_pratition(G)
     n = len(G.vs)
@@ -40,11 +39,11 @@ def partition_mcmc(G: ig.Graph, N, additional_steps, score_manager: ScoreManager
         if (is_REV and np.random.uniform() < 0.15):
             m_i = len(A_i)
             G_i = sample_dag(A_i, len(G.vs), score_manager)
-            G_i, type = new_edge_reversal_move(G_i)
+            G_i, type = REV_move(G_i)
 
             # Markov Equivalence step runs every time REV is sampled
             if (is_MES):
-                G_i, AMOs = propose_markov_equivalent(G_i)
+                G_i, AMOs = MES(G_i)
 
             A_i = create_pratition(G_i)
             scores = P_partition(A_i, n, score_manager)

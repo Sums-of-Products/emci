@@ -1,10 +1,9 @@
 import numpy as np
-from src.new_edge_reversal import REV
-from utils import get_es_diff
+from src.steps.REV import REV
 import igraph as ig
 from tqdm import tqdm
 
-from src.probabilities import R, ScoreManager
+from src.utils import R, ScoreManager
 import random
 
 
