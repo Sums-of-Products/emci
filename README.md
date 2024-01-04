@@ -1,4 +1,4 @@
-# EMCi: Structure MCMC Discovery Tool
+# EMCi: Bayesian Network MCMC 
 
 ## Description
 EMCi is a Python tool for performing Structural MCMC (Markov Chain Monte Carlo) discovery on score files. It leverages graph manipulation and sampling techniques to analyze and visualize score data, providing insights into the underlying structure.
