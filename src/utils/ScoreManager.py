@@ -1,7 +1,8 @@
 import igraph as ig
 import numpy as np
-from utils import read_scores_from_file
 from scipy.special import binom
+
+from .helpers import read_scores_from_file
 
 
 class ScoreManager:
