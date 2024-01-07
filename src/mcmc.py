@@ -25,13 +25,13 @@ def mcmc(G: ig.Graph, N: int, additional_steps: list[str], score_manager: ScoreM
         likelihood_i_p_1, prior_i_p_1 = score_manager.get_score(G_i_plus_1)
 
         # Temperature
-        likelihood_i_p_1 *= beta
+        # likelihood_i_p_1 *= beta
 
         if (step_type == 'REV'):
             G_i, likelihood_i, prior_i = G_i_plus_1, likelihood_i_p_1, prior_i_p_1
         else:
             A = np.min(
-                [1, R(likelihood_i, likelihood_i_p_1, prior_i, prior_i_p_1)])
+                [1, R(likelihood_i * beta, likelihood_i_p_1 * beta, prior_i, prior_i_p_1)])
             if (np.random.uniform() <= A):
                 G_i, likelihood_i, prior_i = G_i_plus_1, likelihood_i_p_1, prior_i_p_1
 
