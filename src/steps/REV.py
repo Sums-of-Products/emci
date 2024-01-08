@@ -5,8 +5,9 @@ from scipy.special import logsumexp
 
 
 class REV:
-    def __init__(self, score_manager: ScoreManager):
+    def __init__(self, score_manager: ScoreManager, beta=1):
         self.score_manager = score_manager
+        self.beta = beta
 
     # Calculates Z (18)
     def get_Z1(self, M: ig.Graph, X) -> (int, list[set]):
@@ -17,7 +18,7 @@ class REV:
         parent_sets = list(filter(lambda parent_set: len(
             parent_set & descendants) == 0, parent_sets))
 
-        return self.sum_scores(X, parent_sets), parent_sets
+        return self.sum_scores(X, parent_sets) * self.beta, parent_sets
 
     def sum_scores(self, X, parent_sets):
         if (len(parent_sets) == 0):
@@ -34,7 +35,7 @@ class REV:
         parent_sets = list(filter(lambda parent_set: self.I(parent_set, Xm) and len(
             parent_set & descendants) == 0, parent_sets))
 
-        return self.sum_scores(Xn, parent_sets), parent_sets
+        return self.sum_scores(Xn, parent_sets) * self.beta, parent_sets
 
     def orphan_nodes(self, M, nodes):
         M_prime = M.copy()
