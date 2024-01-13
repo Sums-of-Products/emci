@@ -3,7 +3,7 @@ import random
 import igraph as ig
 import networkx as nx
 import numpy as np
-from markov_equivalent.count import C, FP, count, get_maximal_cliques, v_func
+from .count import C, FP, count, get_maximal_cliques, v_func
 from utils import plot
 import matplotlib.pyplot as plt
 
