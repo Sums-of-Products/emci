@@ -28,14 +28,14 @@ score_manager = ScoreManager(score_name)
 G = ig.Graph(directed=True)
 G.add_vertices(len(score_manager.scores))
 
-fig, (ax_main, ax_kde) = plt.subplots(nrows=1, ncols=2,
-                                      gridspec_kw={'width_ratios': [4, 1]}, figsize=(8, 4))
+# fig, (ax_main, ax_kde) = plt.subplots(nrows=1, ncols=2,
+#                                       gridspec_kw={'width_ratios': [4, 1]}, figsize=(8, 4))
 
-ax_main.set_xlabel('Index')
-ax_main.set_ylabel('Scores')
-ax_kde.set_xlabel('Density')
-ax_kde.set_ylabel('')
-ax_kde.get_yaxis().set_visible(False)
+# ax_main.set_xlabel('Index')
+# ax_main.set_ylabel('Scores')
+# ax_kde.set_xlabel('Density')
+# ax_kde.set_ylabel('')
+# ax_kde.get_yaxis().set_visible(False)
 
 colors = ['blue', 'green', 'red', 'magenta']
 variations = [[], ['rev']]
@@ -45,8 +45,9 @@ for i in range(0, 2):
     steps = list(sample_generator)
 
     scores = [step[1] for step in steps][-len(steps)//2:]
-    ax_main.plot(range(len(scores)), scores, color='blue', label="Structural")
-    sns.kdeplot(scores, ax=ax_kde, vertical=True, color='blue', fill=True)
+    plt.hist(scores, label="Struct", range=[-22483, -22480],  alpha=0.5)
+    # ax_main.plot(range(len(scores)), scores, color='blue', label="Structural")
+    # sns.kdeplot(scores, ax=ax_kde, vertical=True, color='blue', fill=True)
 
 # Plot with REV
 for i in range(0, 2):
@@ -54,32 +55,34 @@ for i in range(0, 2):
     steps = list(sample_generator)
 
     scores = [step[1] for step in steps][-len(steps)//2:]
-    ax_main.plot(range(len(scores)), scores,
-                 color='green', label="Structural w/ REV")
-    sns.kdeplot(scores, ax=ax_kde, vertical=True, color='green', fill=True)
+    plt.hist(scores, label="w/ Rev", range=[-22483, -22480], alpha=0.5)
+    # ax_main.plot(range(len(scores)), scores,
+    #              color='green', label="Structural w/ REV")
+    # sns.kdeplot(scores, ax=ax_kde, vertical=True, color='green', fill=True)
 
 
-for i in range(0, 2):
-    # Partition
-    partition_sample_generator = partition_mcmc(
-        G, n, ['rev'], score_manager, True)
-    steps = list(partition_sample_generator)
+# for i in range(0, 2):
+#     # Partition
+#     partition_sample_generator = partition_mcmc(
+#         G, n, ['rev'], score_manager, True)
+#     steps = list(partition_sample_generator)
 
-    scores = [step[1] for step in steps][-len(steps)//2:]
-    ax_main.plot(range(len(scores)), scores, color='red',
-                 label="Partition w/ REV")
-    sns.kdeplot(scores, ax=ax_kde, vertical=True, color='red', fill=True)
+#     scores = [step[1] for step in steps][-len(steps)//2:]
+#     ax_main.plot(range(len(scores)), scores, color='red',
+#                  label="Partition w/ REV")
+#     sns.kdeplot(scores, ax=ax_kde, vertical=True, color='red', fill=True)
 
-for i in range(0, 2):
-    # Partition with MES
-    partition_sample_generator = partition_mcmc(
-        G, n, ['rev', 'mes'], score_manager, True)
-    steps = list(partition_sample_generator)
+# for i in range(0, 2):
+#     # Partition with MES
+#     partition_sample_generator = partition_mcmc(
+#         G, n, ['rev', 'mes'], score_manager, True)
+#     steps = list(partition_sample_generator)
 
-    scores = [step[1] for step in steps][-len(steps)//2:]
-    ax_main.plot(range(len(scores)), scores, color='magenta',
-                 label="Partition w/ REV & MES")
-    sns.kdeplot(scores, ax=ax_kde, vertical=True, color='magenta', fill=True)
+#     scores = [step[1] for step in steps][-len(steps)//2:]
+#     ax_main.plot(range(len(scores)), scores, color='magenta',
+#                  label="Partition w/ REV & MES")
+#     sns.kdeplot(scores, ax=ax_kde, vertical=True, color='magenta', fill=True)
 
+# ax_main.legend(loc='upper left')
 plt.legend()
 plt.show()
