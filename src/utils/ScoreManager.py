@@ -4,21 +4,21 @@ from scipy.special import binom
 
 from .helpers import read_scores_from_file
 
-
 class ScoreManager:
-    def __init__(self, score_name: str):
+    def __init__(self, score_name: str, Flag = 0):
         self.scores = read_scores_from_file(f'data/scores/{score_name}.jkl')
+        self.Flag = Flag
 
-    def P(self, M: ig.Graph):
-        def f(n, G_i_count):
-            return 1 / binom(n - 1, G_i_count)
+    # def P(self, M: ig.Graph):
+    #     def f(n, G_i_count):
+    #         return 1 / binom(n - 1, G_i_count)
 
-        G_i_count = np.fromiter(
-            map(lambda v: len(list(M.predecessors(v))), M.vs), int)
+    #     G_i_count = np.fromiter(
+    #         map(lambda v: len(list(M.predecessors(v))), M.vs), int)
 
-        return f(len(list(M.vs)), G_i_count).prod()
+    #     return f(len(list(M.vs)), G_i_count).prod()
 
-    def get_local_likelihood(self, v, pa_i, n):
+    def get_local_likelihood(self, v, pa_i):
         try:
             res = self.scores[v][pa_i]
         except KeyError:
@@ -26,26 +26,26 @@ class ScoreManager:
 
         return res
 
-    def get_local_prior(self, v, pa_i, n):
+    def get_local_prior(self, v, pa_i, N):
         k = len(pa_i)
 
         # Use Koivisto prior
-        prior = np.log(1 / binom(n, k))
+        prior = np.log(1 / binom(N - 1, k))
         return prior
 
-    def get_local_score(self, v, pa_i, n):
-        return self.get_local_likelihood(v, pa_i, n) + self.get_local_prior(v, pa_i, n)
+    def get_local_score(self, v, pa_i, N):
+        return self.get_local_likelihood(v, pa_i) + self.get_local_prior(v, pa_i, N)
 
     def get_score(self, G: ig.Graph):
         likelihood = 0
         prior = 0
 
-        n = len(G.vs)
-
+        N = len(G.vs)
+        # components = G.connected_components("weak")
         for v in G.vs:
             pi = frozenset(map(lambda x: x, G.predecessors(v)))
             local_score, local_prior = self.get_local_likelihood(
-                v.index, pi, n), self.get_local_prior(v.index, pi, n)
+                v.index, pi), self.get_local_prior(v.index, pi, N)
 
             # If it is inf, just return
             if (local_score == -np.inf):

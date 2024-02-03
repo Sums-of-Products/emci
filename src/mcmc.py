@@ -1,4 +1,5 @@
 import numpy as np
+from src.steps import NEW_MES
 from src.steps.REV import REV
 import igraph as ig
 from tqdm import tqdm
@@ -13,13 +14,18 @@ def mcmc(G: ig.Graph, N: int, additional_steps: list[str], score_manager: ScoreM
     """
     G_i: ig.Graph = G.copy()
 
-    is_REV = 'rev' in additional_steps
+    is_REV = 'REV' in additional_steps
+    is_NEW_MES = 'NEW_MES' in additional_steps
 
     pbar = tqdm(
         range(N), bar_format='{desc}: {bar}') if show_progress else iter(lambda: True, None)
 
-    for i in pbar:
-        G_i_plus_1, step_type = propose_next(G_i, is_REV, score_manager)
+    for i in pbar: 
+        if (is_NEW_MES and np.random.uniform() < 0.07):
+            # print(len(G_i_plus_1.vs))
+            G_i_plus_1, step_type = NEW_MES(score_manager).new_mes_move(G_i)
+        else:
+            G_i_plus_1, step_type = propose_next(G_i, is_REV, score_manager)
 
         likelihood_i, prior_i = score_manager.get_score(G_i)
         likelihood_i_p_1, prior_i_p_1 = score_manager.get_score(G_i_plus_1)
@@ -37,9 +43,9 @@ def mcmc(G: ig.Graph, N: int, additional_steps: list[str], score_manager: ScoreM
 
         score = likelihood_i + prior_i
         if (show_progress):
-            pbar.set_description(f'Score: {score:.2f}')
+            pbar.set_description(f'Likelihood: {likelihood_i:.2f}, Prior: {prior_i:.2f}')
 
-        yield G_i, score
+        yield G_i, likelihood_i
 
 
 def propose_next(G_i: ig.Graph, is_REV, score_manager: ScoreManager):

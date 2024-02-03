@@ -34,8 +34,6 @@ def v_func(G, r, v, clique_tree):
 
 memo = {}
 # G is a UCCG
-
-
 def count(G: nx.Graph, pool=None):
     G_hash = get_graph_hash(G)
 
