@@ -30,7 +30,7 @@ class ScoreManager:
         k = len(pa_i)
 
         # Use Koivisto prior
-        prior = np.log(1 / binom(n, k))
+        prior = np.log(1 / binom(n - 1, k))
         return prior
 
     def get_local_score(self, v, pa_i, n):
