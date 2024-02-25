@@ -157,7 +157,7 @@ def sample_from_dag_gaussian(DAG,n):
                     distributions[j]=[np.random.normal(0,tau0,1)[0],(1/np.random.gamma(1,1,1)[0])**.5]
                     for l in range(len(parent)):
                         distributions[j].append(np.random.normal(0,(1/np.random.gamma(1,1,1)[0])**.5,1)[0])
-                        distributions[j].append((1/np.random.gamma(1,1,1)[0])**.5)
+                    distributions[j].append((1/np.random.gamma(1,1,1)[0])**.5)
                     distributions[j]=tuple(distributions[j])
                                       
                              
@@ -184,9 +184,9 @@ def sample_from_dag_gaussian(DAG,n):
                     parent_state=tuple(parent_state)
                     b0=np.random.normal(distributions[j][0],distributions[j][1])
                     for k in range(len(parent_state)):
-                        b0+=parent_state[k]*distributions[j][2*k+2]
-                        sigma=distributions[j][2*k+3]
-                        sample[j]=np.random.normal(b0,sigma,1)[0]
+                        b0+=parent_state[k]*distributions[j][k+2]
+                    sigma=distributions[j][k+3]
+                    sample[j]=np.random.normal(b0,sigma,1)[0]
                     
         samples.append(sample)
     return samples
