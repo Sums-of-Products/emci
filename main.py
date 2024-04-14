@@ -1,14 +1,16 @@
 import igraph as ig
 import seaborn as sns
+import numpy as np
 from matplotlib import pyplot as plt
 from src.partition_mcmc import partition_mcmc
 from src.utils import ScoreManager
 from src.mcmc import mcmc
 import sys
 import warnings
-warnings.filterwarnings('ignore')
 
-sns.set(style="whitegrid")
+warnings.filterwarnings("ignore")
+
+sns.set_theme(style="whitegrid")
 
 if len(sys.argv) < 3:
     print("Usage: python main.py <score name> <n>")
@@ -25,40 +27,53 @@ except ValueError:
 score_manager = ScoreManager(score_name)
 
 # Initial graph
-G = ig.Graph(directed=True)
-G.add_vertices(len(score_manager.scores))
+emptyG = ig.Graph(directed=True)
+emptyG.add_vertices(len(score_manager.scores))
 
-# fig, (ax_main, ax_kde) = plt.subplots(nrows=1, ncols=2,
-#                                       gridspec_kw={'width_ratios': [4, 1]}, figsize=(8, 4))
+fig, (ax_main, ax_kde) = plt.subplots(
+    nrows=1, ncols=2, gridspec_kw={"width_ratios": [4, 1]}, figsize=(8, 4)
+)
 
-# ax_main.set_xlabel('Index')
-# ax_main.set_ylabel('Scores')
-# ax_kde.set_xlabel('Density')
-# ax_kde.set_ylabel('')
-# ax_kde.get_yaxis().set_visible(False)
+ax_main.set_xlabel("Index")
+ax_main.set_ylabel("Scores")
+ax_kde.set_xlabel("Density")
+ax_kde.set_ylabel("")
+ax_kde.get_yaxis().set_visible(False)
 
-colors = ['blue', 'green', 'red', 'magenta']
-variations = [[], ['rev']]
+
+def calculate_edge_ratios(G):
+    n = G[0].vcount()
+    cumulative_matrix = np.zeros((n, n))
+
+    for graph in G:
+        cumulative_matrix += np.array(graph.get_adjacency().data)
+
+    ratio_matrix = cumulative_matrix / len(G)
+
+    return np.round(ratio_matrix, decimals=2)
+
+
+colors = ["blue", "green", "red", "magenta"]
+variations = [[], ["rev"]]
 # Plot
 for i in range(0, 2):
-    sample_generator = mcmc(G, n, [], score_manager, 1, True)
-    steps = list(sample_generator)
+    sample_generator = mcmc(emptyG, n, ["rev"], score_manager, 1, True)
+    G, score = zip(*sample_generator)
 
-    scores = [step[1] for step in steps][-len(steps)//2:]
-    plt.hist(scores, label="Struct", range=[-22483, -22480],  alpha=0.5)
-    # ax_main.plot(range(len(scores)), scores, color='blue', label="Structural")
-    # sns.kdeplot(scores, ax=ax_kde, vertical=True, color='blue', fill=True)
+    print(calculate_edge_ratios(G[len(G) // 2 :]))
+    # plt.hist(chain[:0], label="Struct", range=[-22483, -22480], alpha=0.5)
+    ax_main.plot(range(len(score)), score, color="blue", label="Structural")
+    sns.kdeplot(score, ax=ax_kde, vertical=True, color="blue", fill=True)
 
-# Plot with REV
-for i in range(0, 2):
-    sample_generator = mcmc(G, n, ['rev'], score_manager, 1, True)
-    steps = list(sample_generator)
+# # Plot with REV
+# for i in range(0, 2):
+#     sample_generator = mcmc(G, n, ["rev"], score_manager, 1, True)
+#     steps = list(sample_generator)
 
-    scores = [step[1] for step in steps][-len(steps)//2:]
-    plt.hist(scores, label="w/ Rev", range=[-22483, -22480], alpha=0.5)
-    # ax_main.plot(range(len(scores)), scores,
-    #              color='green', label="Structural w/ REV")
-    # sns.kdeplot(scores, ax=ax_kde, vertical=True, color='green', fill=True)
+#     scores = [step[1] for step in steps]
+#     # plt.hist(scores, label="w/ Rev", range=[-22483, -22480], alpha=0.5)
+#     ax_main.plot(range(len(scores)), scores, color="green", label="Structural w/ REV")
+#     sns.kdeplot(scores, ax=ax_kde, vertical=True, color="green", fill=True)
 
 
 # for i in range(0, 2):

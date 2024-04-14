@@ -3,8 +3,7 @@ import random
 import igraph as ig
 import networkx as nx
 import numpy as np
-from markov_equivalent.count import C, FP, count, get_maximal_cliques, v_func
-from utils import plot
+from .count import C, FP, count, get_maximal_cliques, v_func
 import matplotlib.pyplot as plt
 
 
@@ -18,12 +17,11 @@ def get_markov_equivalent_topological_orders(U: nx.Graph):
         maximal_cliques = get_maximal_cliques(clique_tree)
         r = maximal_cliques[0]
 
-        if (len(maximal_cliques) == 1 and len(maximal_cliques[0]) == 1):
+        if len(maximal_cliques) == 1 and len(maximal_cliques[0]) == 1:
             return r
 
         # Maximal clique drawn with probability proportional to v_func
-        p = list(map(lambda v: v_func(
-            UCCG, r, v, clique_tree) / AMO, maximal_cliques))
+        p = list(map(lambda v: v_func(UCCG, r, v, clique_tree) / AMO, maximal_cliques))
         v = maximal_cliques[np.random.choice(np.arange(len(p)), p=p)]
 
         K = set(v)
@@ -37,7 +35,7 @@ def get_markov_equivalent_topological_orders(U: nx.Graph):
         while is_forbidden_to:
             to = random.choice(permutations)
 
-            is_start_with_fp = [np.array_equal(to[:len(fp)], fp) for fp in FPs]
+            is_start_with_fp = [np.array_equal(to[: len(fp)], fp) for fp in FPs]
             is_forbidden_to = any(is_start_with_fp)
 
         for H in C(UCCG, K):
@@ -74,16 +72,19 @@ def MES(G: ig.Graph) -> ig.Graph:
     equivalent_G.add_vertices(len(G.vs))
 
     for to in tos:
-        for (source, target) in U.edges:
-            if (source not in to or target not in to):
+        for source, target in U.edges:
+            if source not in to or target not in to:
                 continue
-            if (to.index(source) < to.index(target)):
+            if to.index(source) < to.index(target):
                 equivalent_G.add_edge(source, target)
             else:
                 equivalent_G.add_edge(target, source)
 
     for e in G.es:
-        if not (equivalent_G.are_connected(e.source, e.target) or equivalent_G.are_connected(e.target, e.source)):
+        if not (
+            equivalent_G.are_connected(e.source, e.target)
+            or equivalent_G.are_connected(e.target, e.source)
+        ):
             equivalent_G.add_edge(e.source, e.target)
 
     return equivalent_G, AMOs
@@ -102,10 +103,8 @@ def test_top_orders_distribution(G):
     for i in range(10000):
         tos, AMOs = get_markov_equivalent_topological_orders(U)
         all_tos.append(tos)
-    all_tos = list(map(lambda tos: tuple(
-        item for t in tos for item in t), all_tos))
-    all_tos = list(map(lambda tos: ''.join(str(item)
-                   for item in tos), all_tos))
+    all_tos = list(map(lambda tos: tuple(item for t in tos for item in t), all_tos))
+    all_tos = list(map(lambda tos: "".join(str(item) for item in tos), all_tos))
 
     data = {}
     for to in all_tos:
@@ -137,20 +136,20 @@ def is_strongly_protected(G: ig.Graph, G_lines: ig.Graph, e: ig.Edge):
     # c
     b_parents = list(G.predecessors(b))
     for c in b_parents:
-        if (c != a and G.are_connected(a, c)):
+        if c != a and G.are_connected(a, c):
             return True
     # d
 
     a_neighbors = list(G.neighbors(a))
     for c1, c2 in itertools.combinations(a_neighbors, 2):
-        if (G.are_connected(c1, b) and G.are_connected(c2, b)):
+        if G.are_connected(c1, b) and G.are_connected(c2, b):
             return True
 
-    if (len(G_lines.es) == 0):
+    if len(G_lines.es) == 0:
         return False
     a_lines_neighbors = list(G_lines.neighbors(a))
     for c1, c2 in itertools.combinations(a_lines_neighbors, 2):
-        if (G.are_connected(c1, b) and G.are_connected(c2, b)):
+        if G.are_connected(c1, b) and G.are_connected(c2, b):
             return True
 
     return False
@@ -164,7 +163,7 @@ def CPDAG(D: ig.Graph) -> (ig.Graph, ig.Graph):
 
     G_i_plus_1 = undirect_non_strongly_protected_arrows(G_i, G_lines)
 
-    while (len(G_i.es) != len(G_i_plus_1.es)):
+    while len(G_i.es) != len(G_i_plus_1.es):
         G_i = G_i_plus_1.copy()
         G_i_plus_1 = undirect_non_strongly_protected_arrows(G_i, G_lines)
 

@@ -3,7 +3,7 @@ import random
 from functools import reduce
 from operator import mul
 import numpy as np
-from utils import get_graph_hash
+from src.utils import get_graph_hash
 
 v_func_memo = {}
 
@@ -46,8 +46,7 @@ def count(G: nx.Graph, pool=None):
         pass
 
     # Get connected components of the graph
-    G_subs = [G.subgraph(component)
-              for component in nx.connected_components(G)]
+    G_subs = [G.subgraph(component) for component in nx.connected_components(G)]
     results = []
 
     # For each subgraph, count the AMOs and return the product
@@ -73,7 +72,7 @@ def count(G: nx.Graph, pool=None):
         results.append(result)
 
     # Product of each component
-    result = reduce(lambda x, y: x*y, results, 1)
+    result = reduce(lambda x, y: x * y, results, 1)
     memo[G_hash] = result
 
     return result
@@ -87,7 +86,7 @@ def FP(T, r, v):
 
     for i in range(0, p - 1):
         intersection = {value for value in path[i] if value in path[i + 1]}
-        if (intersection.issubset(set(v))):
+        if intersection.issubset(set(v)):
             res.append(intersection)
 
     # Converted to set for uniqness and sorted
@@ -112,6 +111,7 @@ def fac(n):
     fmemo[n] = res
     return res
 
+
 # pmemo is for the recursive nature of this function and should be empty for
 # each iteration
 
@@ -121,8 +121,8 @@ def phi(cliquesize, i, fp, pmemo):
         return pmemo[i]
 
     sum = fac(cliquesize - fp[i])
-    for j in range(i+1, len(fp)):
-        sum -= fac(fp[j]-fp[i]) * phi(cliquesize, j, fp, pmemo)
+    for j in range(i + 1, len(fp)):
+        sum -= fac(fp[j] - fp[i]) * phi(cliquesize, j, fp, pmemo)
     pmemo[i] = sum
     return sum
 
@@ -130,14 +130,15 @@ def phi(cliquesize, i, fp, pmemo):
 def maximal_clique_tree(G: nx.Graph):
     clique_tree = nx.Graph()
     maximal_cliques = list(
-        map(lambda clique: tuple(sorted(clique)), nx.find_cliques(G)))
+        map(lambda clique: tuple(sorted(clique)), nx.find_cliques(G))
+    )
 
     clique_tree.add_nodes_from(maximal_cliques)
 
     # Builds graph out of maximal cliques by content intersection
     for clique1 in maximal_cliques:
         for clique2 in maximal_cliques:
-            if (clique1 != clique2 and len(set(clique1).intersection(clique2)) > 0):
+            if clique1 != clique2 and len(set(clique1).intersection(clique2)) > 0:
                 # if(len([edge for edge in clique_tree.edges() if clique1 in edge]) == 0):
                 clique_tree.add_edge(clique1, clique2)
 
@@ -164,8 +165,10 @@ def C(G: nx.Graph, K: set):
         if not any(v in el for el in L) and (v not in K):
             L.add(frozenset(X))
             # Output the undirected components of G[X].
-            subgraphs = [G.subgraph(
-                component) for component in nx.connected_components(G.subgraph(X))]
+            subgraphs = [
+                G.subgraph(component)
+                for component in nx.connected_components(G.subgraph(X))
+            ]
 
             output.extend(subgraphs)
 
@@ -180,6 +183,7 @@ def C(G: nx.Graph, K: set):
 
     return output
 
+
 # Get maximal cliques out of a clique tree that includes minimal seperators
 
 
@@ -188,7 +192,7 @@ def get_maximal_cliques(clique_tree: nx.Graph):
     for clique1 in clique_tree.nodes:
         is_maximal = True
         for clique2 in clique_tree.nodes:
-            if (clique1 != clique2 and set(clique1).issubset(clique2)):
+            if clique1 != clique2 and set(clique1).issubset(clique2):
                 is_maximal = False
         if is_maximal:
             maximal_cliques.append(clique1)

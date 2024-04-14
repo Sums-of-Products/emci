@@ -2,21 +2,31 @@ import numpy as np
 from src.steps.REV import REV
 import igraph as ig
 from tqdm import tqdm
-
+from typing import Iterator
 from src.utils import R, ScoreManager
 import random
 
 
-def mcmc(G: ig.Graph, N: int, additional_steps: list[str], score_manager: ScoreManager, beta=1, show_progress=False):
-    """ Generator. 
-        yields (Graph, score)
+def mcmc(
+    G: ig.Graph,
+    N: int,
+    additional_steps: list[str],
+    score_manager: ScoreManager,
+    beta=1,
+    show_progress=False,
+) -> Iterator[tuple[ig.Graph, float]]:
+    """Generator.
+    yields (Graph, score)
     """
     G_i: ig.Graph = G.copy()
 
-    is_REV = 'rev' in additional_steps
+    is_REV = "rev" in additional_steps
 
-    pbar = tqdm(
-        range(N), bar_format='{desc}: {bar}') if show_progress else iter(lambda: True, None)
+    pbar = (
+        tqdm(range(N), bar_format="{desc}: {bar}")
+        if show_progress
+        else iter(lambda: True, None)
+    )
 
     for i in pbar:
         G_i_plus_1, step_type = propose_next(G_i, is_REV, score_manager)
@@ -27,17 +37,16 @@ def mcmc(G: ig.Graph, N: int, additional_steps: list[str], score_manager: ScoreM
         # Temperature
         likelihood_i_p_1 *= beta
 
-        if (step_type == 'REV'):
+        if step_type == "REV":
             G_i, likelihood_i, prior_i = G_i_plus_1, likelihood_i_p_1, prior_i_p_1
         else:
-            A = np.min(
-                [1, R(likelihood_i, likelihood_i_p_1, prior_i, prior_i_p_1)])
-            if (np.random.uniform() <= A):
+            A = np.min([1, R(likelihood_i, likelihood_i_p_1, prior_i, prior_i_p_1)])
+            if np.random.uniform() <= A:
                 G_i, likelihood_i, prior_i = G_i_plus_1, likelihood_i_p_1, prior_i_p_1
 
         score = likelihood_i + prior_i
-        if (show_progress):
-            pbar.set_description(f'Score: {score:.2f}')
+        if show_progress:
+            pbar.set_description(f"Score: {score:.2f}")
 
         yield G_i, score
 
@@ -48,21 +57,21 @@ def propose_next(G_i: ig.Graph, is_REV, score_manager: ScoreManager):
 
     new_edge_reversal_move = REV(score_manager).new_edge_reversal_move
 
-    if (is_REV and np.random.uniform() < 0.07):
+    if is_REV and np.random.uniform() < 0.07:
         return new_edge_reversal_move(G_i_plus_1)
 
-    if (G_i.are_connected(a, b)):
+    if G_i.are_connected(a, b):
         G_i_plus_1.delete_edges([(a, b)])
-        return G_i_plus_1, 'remove'
-    elif (G_i.are_connected(b, a)):
+        return G_i_plus_1, "remove"
+    elif G_i.are_connected(b, a):
         G_i_plus_1.delete_edges([(b, a)])
         G_i_plus_1.add_edges([(a, b)])
 
         if G_i_plus_1.is_dag():
-            return G_i_plus_1, 'reverse'
+            return G_i_plus_1, "reverse"
     else:
         G_i_plus_1.add_edges([(a, b)])
         if G_i_plus_1.is_dag():
-            return G_i_plus_1, 'add'
+            return G_i_plus_1, "add"
 
     return G_i, False
