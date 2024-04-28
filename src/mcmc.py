@@ -1,5 +1,5 @@
 import numpy as np
-from src.steps.REV import REV
+from src.steps import REV, MES
 import igraph as ig
 from tqdm import tqdm
 from typing import Iterator
@@ -20,8 +20,6 @@ def mcmc(
     """
     G_i: ig.Graph = G.copy()
 
-    is_REV = "rev" in additional_steps
-
     pbar = (
         tqdm(range(N), bar_format="{desc}: {bar}")
         if show_progress
@@ -29,7 +27,7 @@ def mcmc(
     )
 
     for i in pbar:
-        G_i_plus_1, step_type = propose_next(G_i, is_REV, score_manager)
+        G_i_plus_1, step_type = propose_next(G_i, additional_steps, score_manager)
 
         likelihood_i, prior_i = score_manager.get_score(G_i)
         likelihood_i_p_1, prior_i_p_1 = score_manager.get_score(G_i_plus_1)
@@ -51,12 +49,19 @@ def mcmc(
         yield G_i, score
 
 
-def propose_next(G_i: ig.Graph, is_REV, score_manager: ScoreManager):
+def propose_next(
+    G_i: ig.Graph, additional_steps: list[str], score_manager: ScoreManager
+):
     a, b = random.sample(list(G_i.vs), k=2)
     G_i_plus_1: ig.Graph = G_i.copy()
 
+    is_REV = "rev" in additional_steps
+    is_MES = "mes" in additional_steps
+
     new_edge_reversal_move = REV(score_manager).new_edge_reversal_move
 
+    if is_MES and np.random.uniform() < 0.06:
+        return MES(G_i_plus_1)
     if is_REV and np.random.uniform() < 0.07:
         return new_edge_reversal_move(G_i_plus_1)
 

@@ -1,7 +1,7 @@
 import random
 import igraph as ig
 import itertools
-from functools import reduce, cache
+from functools import reduce
 import numpy as np
 from scipy.special import binom
 import copy

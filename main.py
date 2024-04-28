@@ -3,13 +3,12 @@ import seaborn as sns
 import numpy as np
 from matplotlib import pyplot as plt
 from src.partition_mcmc import partition_mcmc
-from src.utils import ScoreManager
+from src.utils import ScoreManager, calculate_and_save_edge_ratios
 from src.mcmc import mcmc
 import sys
 import warnings
 
 warnings.filterwarnings("ignore")
-
 sns.set_theme(style="whitegrid")
 
 if len(sys.argv) < 3:
@@ -17,13 +16,7 @@ if len(sys.argv) < 3:
     sys.exit(1)
 
 score_name = sys.argv[1]
-
-try:
-    n = int(sys.argv[2])
-except ValueError:
-    print("Error: sys.argv[2] (n) is not an integer")
-    sys.exit(1)
-
+base_n = int(sys.argv[2])
 score_manager = ScoreManager(score_name)
 
 # Initial graph
@@ -40,64 +33,63 @@ ax_kde.set_xlabel("Density")
 ax_kde.set_ylabel("")
 ax_kde.get_yaxis().set_visible(False)
 
-
-def calculate_edge_ratios(G):
-    n = G[0].vcount()
-    cumulative_matrix = np.zeros((n, n))
-
-    for graph in G:
-        cumulative_matrix += np.array(graph.get_adjacency().data)
-
-    ratio_matrix = cumulative_matrix / len(G)
-
-    return np.round(ratio_matrix, decimals=2)
-
-
 colors = ["blue", "green", "red", "magenta"]
-variations = [[], ["rev"]]
-# Plot
+ratios = [5]
+variations = [["rev"]]
+
+for i in range(1):
+    for color, variation, ratio in zip(colors, variations, ratios):
+        n = base_n * ratio
+
+        for i in range(1):
+            sample_generator = mcmc(
+                emptyG,
+                n,
+                variation,
+                score_manager,
+                1,
+                True,
+            )
+            G_samples, scores = zip(*sample_generator)
+            G_samples, scores = G_samples[::ratio], scores[::ratio]
+
+            edge_ratios, variation_desc = calculate_and_save_edge_ratios(
+                G_samples, score_name, n, variation
+            )
+
+            print(edge_ratios)
+            ax_main.plot(
+                range(len(scores)),
+                scores,
+                color=color,
+                label=variation_desc if i == 0 else "",
+            )
+
+            sns.kdeplot(scores, ax=ax_kde, vertical=True, color=color, fill=True)
+
+colors = ["cyan", "yellow"]
+ratios = [1, 1]
+variations = [["rev"], ["rev", "mes"]]
 for i in range(0, 2):
-    sample_generator = mcmc(emptyG, n, ["rev"], score_manager, 1, True)
-    G, score = zip(*sample_generator)
+    for color, variation, ratio in zip(colors, variations, ratios):
+        # Partition
+        partition_sample_generator = partition_mcmc(
+            emptyG, n, variation, score_manager, True
+        )
+        G, score = zip(*partition_sample_generator)
 
-    print(calculate_edge_ratios(G[len(G) // 2 :]))
-    # plt.hist(chain[:0], label="Struct", range=[-22483, -22480], alpha=0.5)
-    ax_main.plot(range(len(score)), score, color="blue", label="Structural")
-    sns.kdeplot(score, ax=ax_kde, vertical=True, color="blue", fill=True)
+        edge_ratios, variation_desc = calculate_and_save_edge_ratios(
+            G, score_name, n, variation
+        )
 
-# # Plot with REV
-# for i in range(0, 2):
-#     sample_generator = mcmc(G, n, ["rev"], score_manager, 1, True)
-#     steps = list(sample_generator)
+        ax_main.plot(
+            range(len(score)),
+            score,
+            color=color,
+            label=variation_desc if i == 0 else None,
+        )
+        sns.kdeplot(score, ax=ax_kde, vertical=True, color=color, fill=True)
 
-#     scores = [step[1] for step in steps]
-#     # plt.hist(scores, label="w/ Rev", range=[-22483, -22480], alpha=0.5)
-#     ax_main.plot(range(len(scores)), scores, color="green", label="Structural w/ REV")
-#     sns.kdeplot(scores, ax=ax_kde, vertical=True, color="green", fill=True)
-
-
-# for i in range(0, 2):
-#     # Partition
-#     partition_sample_generator = partition_mcmc(
-#         G, n, ['rev'], score_manager, True)
-#     steps = list(partition_sample_generator)
-
-#     scores = [step[1] for step in steps][-len(steps)//2:]
-#     ax_main.plot(range(len(scores)), scores, color='red',
-#                  label="Partition w/ REV")
-#     sns.kdeplot(scores, ax=ax_kde, vertical=True, color='red', fill=True)
-
-# for i in range(0, 2):
-#     # Partition with MES
-#     partition_sample_generator = partition_mcmc(
-#         G, n, ['rev', 'mes'], score_manager, True)
-#     steps = list(partition_sample_generator)
-
-#     scores = [step[1] for step in steps][-len(steps)//2:]
-#     ax_main.plot(range(len(scores)), scores, color='magenta',
-#                  label="Partition w/ REV & MES")
-#     sns.kdeplot(scores, ax=ax_kde, vertical=True, color='magenta', fill=True)
-
-# ax_main.legend(loc='upper left')
+ax_main.legend(loc="upper left")
 plt.legend()
 plt.show()

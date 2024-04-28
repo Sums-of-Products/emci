@@ -4,15 +4,29 @@ import networkx as nx
 import numpy as np
 import hashlib
 import igraph as ig
+import os
+
+
+def calculate_edge_ratios(G: list[ig.Graph]):
+    G = G[len(G) // 2 :]
+
+    n = G[0].vcount()
+    cumulative_matrix = np.zeros((n, n))
+
+    for graph in G:
+        cumulative_matrix += np.array(graph.get_adjacency().data)
+
+    ratio_matrix = cumulative_matrix / len(G)
+
+    return np.round(ratio_matrix, decimals=2)
 
 
 def read_graph_from_file(filename, random_weights=False):
 
     # file = open('./sample.gr', 'r')
-    file = open(filename, 'r')
+    file = open(filename, "r")
     G = nx.Graph()
-    lines = [tuple(map(int, line.strip().split(" ")))
-             for line in file.readlines()]
+    lines = [tuple(map(int, line.strip().split(" "))) for line in file.readlines()]
     nodes_count = lines[0][0]
     edges = lines[1:]
 
@@ -30,7 +44,7 @@ def read_graph_from_file(filename, random_weights=False):
 def read_scores_from_file(filename):
     scores = {}
 
-    with open(filename, 'r') as file:
+    with open(filename, "r") as file:
         n = int(next(file).strip())
 
         for _ in range(n):
@@ -44,6 +58,34 @@ def read_scores_from_file(filename):
     return scores
 
 
+def calculate_and_save_edge_ratios(
+    G_samples: list[ig.Graph], score_name: str, n: int, variation: list[str]
+):
+    """
+    Calculate edge ratios from graph samples and save the results to a file.
+
+    Args:
+    G_samples (list): List of graph samples from MCMC simulation.
+    score_name (str): The name of the score function used.
+    n (int): The sample size parameter.
+    variation (list): List describing the variation in the simulation, e.g., ['rev'].
+    """
+    edge_ratios = calculate_edge_ratios(G_samples)
+
+    directory_path = f"res/{score_name}"
+    os.makedirs(directory_path, exist_ok=True)
+
+    # Define the filename based on variation
+    variation_desc = " ".join(map(str, variation)) if variation else "basic"
+    file_path = f"{directory_path}/n={n}.{variation_desc}.npy"
+
+    # Save edge ratios to a file
+    np.save(file_path, edge_ratios)
+    print(f"Edge ratios saved to {file_path}")
+
+    return edge_ratios, variation_desc
+
+
 def get_graph_hash(G: nx.Graph) -> str:
     sorted_edges = sorted([tuple(edge) for edge in G.edges()])
     edges_str = str(sorted_edges)
@@ -54,7 +96,7 @@ def get_graph_hash(G: nx.Graph) -> str:
 
 
 # Get the default color cycle from Matplotlib
-default_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+default_colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
 
 counter = 0
 # Function to get the next color from the default color cycle
@@ -65,6 +107,7 @@ def get_next_color():
     color = default_colors[counter % len(default_colors)]
     counter += 1
     return color
+
 
 # Works only for undirected
 # Edit: I think should work for both
@@ -83,7 +126,7 @@ memo = {}
 
 
 def memo_by_graph(G: nx.DiGraph, key: str, value):
-    if (key not in memo):
+    if key not in memo:
         memo[key] = {}
 
 
