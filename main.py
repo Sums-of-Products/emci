@@ -56,8 +56,8 @@ for i in range(1):
             edge_ratios, variation_desc = calculate_and_save_edge_ratios(
                 G_samples, score_name, n, variation
             )
+            np.save(f"res/{score_name}/chain-n={n}.{i}.{variation_desc}", scores)
 
-            print(edge_ratios)
             ax_main.plot(
                 range(len(scores)),
                 scores,
@@ -79,8 +79,10 @@ for i in range(0, 2):
         G, score = zip(*partition_sample_generator)
 
         edge_ratios, variation_desc = calculate_and_save_edge_ratios(
-            G, score_name, n, variation
+            G, score_name, n, variation + ["partition"]
         )
+
+        np.save(f"res/{score_name}/chain-n={n}.{i}.{variation_desc}", scores)
 
         ax_main.plot(
             range(len(score)),

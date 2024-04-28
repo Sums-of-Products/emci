@@ -77,7 +77,7 @@ def calculate_and_save_edge_ratios(
 
     # Define the filename based on variation
     variation_desc = " ".join(map(str, variation)) if variation else "basic"
-    file_path = f"{directory_path}/n={n}.{variation_desc}.npy"
+    file_path = f"{directory_path}/edge-ratios-n={n}.{variation_desc}.npy"
 
     # Save edge ratios to a file
     np.save(file_path, edge_ratios)
