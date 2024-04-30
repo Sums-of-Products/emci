@@ -3,3 +3,4 @@ python-igraph
 scipy
 matplotlib
 tqdm
+seaborn

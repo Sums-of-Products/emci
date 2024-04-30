@@ -37,7 +37,7 @@ colors = ["blue", "green", "red", "magenta"]
 ratios = [5]
 variations = [["rev"]]
 
-for i in range(1):
+for i in range(2):
     for color, variation, ratio in zip(colors, variations, ratios):
         n = base_n * ratio
 
@@ -72,6 +72,8 @@ ratios = [1, 1]
 variations = [["rev"], ["rev", "mes"]]
 for i in range(0, 2):
     for color, variation, ratio in zip(colors, variations, ratios):
+        n = base_n * ratio
+
         # Partition
         partition_sample_generator = partition_mcmc(
             emptyG, n, variation, score_manager, True
