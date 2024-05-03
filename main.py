@@ -33,45 +33,45 @@ ax_kde.set_xlabel("Density")
 ax_kde.set_ylabel("")
 ax_kde.get_yaxis().set_visible(False)
 
-colors = ["blue", "green", "red", "magenta"]
-ratios = [5]
+colors = ["blue", "green", "yellow", "magenta"]
+ratios = [1]
 variations = [["rev"]]
 
-for i in range(2):
-    for color, variation, ratio in zip(colors, variations, ratios):
+for color, variation, ratio in zip(colors, variations, ratios):
+    for i in range(3):
         n = base_n * ratio
 
-        for i in range(1):
-            sample_generator = mcmc(
-                emptyG,
-                n,
-                variation,
-                score_manager,
-                1,
-                True,
-            )
-            G_samples, scores = zip(*sample_generator)
-            G_samples, scores = G_samples[::ratio], scores[::ratio]
+        sample_generator = mcmc(
+            emptyG,
+            n,
+            variation,
+            score_manager,
+            1,
+            True,
+        )
+        G_samples, scores = zip(*sample_generator)
+        G_samples, scores = G_samples[::ratio], scores[::ratio]
 
-            edge_ratios, variation_desc = calculate_and_save_edge_ratios(
-                G_samples, score_name, n, variation
-            )
-            np.save(f"res/{score_name}/chain-n={n}.{i}.{variation_desc}", scores)
+        edge_ratios, variation_desc = calculate_and_save_edge_ratios(
+            G_samples, score_name, n, variation, i
+        )
+        np.save(f"res/{score_name}/chain-n={n}.{i}.{variation_desc}", G_samples)
 
-            ax_main.plot(
-                range(len(scores)),
-                scores,
-                color=color,
-                label=variation_desc if i == 0 else "",
-            )
+        ax_main.plot(
+            range(len(scores)),
+            scores,
+            color=color,
+            label=variation_desc if i == 0 else "",
+        )
 
-            sns.kdeplot(scores, ax=ax_kde, vertical=True, color=color, fill=True)
+        sns.kdeplot(scores, ax=ax_kde, vertical=True, color=color, fill=True)
 
-colors = ["cyan", "yellow"]
+colors = ["cyan", "red"]
 ratios = [1, 1]
 variations = [["rev"], ["rev", "mes"]]
-for i in range(0, 2):
-    for color, variation, ratio in zip(colors, variations, ratios):
+for color, variation, ratio in zip(colors, variations, ratios):
+    for i in range(3):
+
         n = base_n * ratio
 
         # Partition
@@ -81,10 +81,10 @@ for i in range(0, 2):
         G, score = zip(*partition_sample_generator)
 
         edge_ratios, variation_desc = calculate_and_save_edge_ratios(
-            G, score_name, n, variation + ["partition"]
+            G, score_name, n, variation + ["partition"], i
         )
 
-        np.save(f"res/{score_name}/chain-n={n}.{i}.{variation_desc}", scores)
+        np.save(f"res/{score_name}/chain-n={n}.{i}.{variation_desc}", G)
 
         ax_main.plot(
             range(len(score)),

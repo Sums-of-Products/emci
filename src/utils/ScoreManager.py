@@ -7,14 +7,13 @@ from .helpers import read_scores_from_file
 
 class ScoreManager:
     def __init__(self, score_name: str):
-        self.scores = read_scores_from_file(f'data/scores/{score_name}.jkl')
+        self.scores = read_scores_from_file(f"data/scores/{score_name}.jkl")
 
     def P(self, M: ig.Graph):
         def f(n, G_i_count):
             return 1 / binom(n - 1, G_i_count)
 
-        G_i_count = np.fromiter(
-            map(lambda v: len(list(M.predecessors(v))), M.vs), int)
+        G_i_count = np.fromiter(map(lambda v: len(list(M.predecessors(v))), M.vs), int)
 
         return f(len(list(M.vs)), G_i_count).prod()
 
@@ -45,10 +44,11 @@ class ScoreManager:
         for v in G.vs:
             pi = frozenset(map(lambda x: x, G.predecessors(v)))
             local_score, local_prior = self.get_local_likelihood(
-                v.index, pi, n), self.get_local_prior(v.index, pi, n)
+                v.index, pi, n
+            ), self.get_local_prior(v.index, pi, n)
 
             # If it is inf, just return
-            if (local_score == -np.inf):
+            if local_score == -np.inf:
                 return local_score, local_prior
 
             likelihood += local_score
@@ -58,11 +58,11 @@ class ScoreManager:
 
 
 def R(likelihood_i, likelihood_i_p_1, prior_i, prior_i_p_1):
-    if (likelihood_i_p_1 == -np.inf):
+    if likelihood_i_p_1 == -np.inf:
         return 0
 
     # Prevent overlow
-    if (likelihood_i_p_1 - likelihood_i > 400):
+    if likelihood_i_p_1 - likelihood_i > 400:
         res = 1
     else:
         res = np.exp(likelihood_i_p_1 + prior_i_p_1 - likelihood_i - prior_i)

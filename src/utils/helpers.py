@@ -18,7 +18,7 @@ def calculate_edge_ratios(G: list[ig.Graph]):
 
     ratio_matrix = cumulative_matrix / len(G)
 
-    return np.round(ratio_matrix, decimals=2)
+    return ratio_matrix
 
 
 def read_graph_from_file(filename, random_weights=False):
@@ -59,7 +59,7 @@ def read_scores_from_file(filename):
 
 
 def calculate_and_save_edge_ratios(
-    G_samples: list[ig.Graph], score_name: str, n: int, variation: list[str]
+    G_samples: list[ig.Graph], score_name: str, n: int, variation: list[str], i: int
 ):
     """
     Calculate edge ratios from graph samples and save the results to a file.
@@ -75,13 +75,10 @@ def calculate_and_save_edge_ratios(
     directory_path = f"res/{score_name}"
     os.makedirs(directory_path, exist_ok=True)
 
-    # Define the filename based on variation
     variation_desc = " ".join(map(str, variation)) if variation else "basic"
-    file_path = f"{directory_path}/edge-ratios-n={n}.{variation_desc}.npy"
+    file_path = f"{directory_path}/edge-ratios-n={n}.{i}.{variation_desc}.npy"
 
-    # Save edge ratios to a file
     np.save(file_path, edge_ratios)
-    print(f"Edge ratios saved to {file_path}")
 
     return edge_ratios, variation_desc
 
