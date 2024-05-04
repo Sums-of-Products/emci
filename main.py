@@ -55,7 +55,7 @@ for color, variation, ratio in zip(colors, variations, ratios):
         edge_ratios, variation_desc = calculate_and_save_edge_ratios(
             G_samples, score_name, n, variation, i
         )
-        np.save(f"res/{score_name}/chain-n={n}.{i}.{variation_desc}", G_samples)
+        np.save(f"res/{score_name}/chain-n={n}.{i}.{variation_desc}", scores)
 
         ax_main.plot(
             range(len(scores)),
@@ -84,7 +84,7 @@ for color, variation, ratio in zip(colors, variations, ratios):
             G, score_name, n, variation + ["partition"], i
         )
 
-        np.save(f"res/{score_name}/chain-n={n}.{i}.{variation_desc}", G)
+        np.save(f"res/{score_name}/chain-n={n}.{i}.{variation_desc}", score)
 
         ax_main.plot(
             range(len(score)),
