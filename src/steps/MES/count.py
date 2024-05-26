@@ -37,8 +37,8 @@ memo = {}
 
 def count(G: ig.Graph, pool=None):
     # G is a UCCG
-    for v in G.vs:
-        G.vs["label"] = G.vs.indices.copy()
+
+    G.vs["label"] = G.vs.indices.copy()
 
     G_hash = get_graph_hash(G)
 
@@ -165,10 +165,11 @@ def C(G: ig.Graph, K: set):
             L.add(frozenset(X))
 
             vertex_indices = [v.index for v in G.vs if v["label"] in X]
-            subgraphs = [
-                G.subgraph(component)
-                for component in G.subgraph(vertex_indices).clusters()
-            ]
+            subgraphs = []
+            master_subgraph = G.subgraph(vertex_indices)
+            for component in master_subgraph.clusters():
+                subgraph = master_subgraph.subgraph(component)
+                subgraphs.append(subgraph)
 
             # Output the undirected components of G[X].
             output.extend(subgraphs)
@@ -176,7 +177,9 @@ def C(G: ig.Graph, K: set):
         X.remove(v)
         S_new = []
         vertex_index = next((node.index for node in G.vs if node["label"] == v), None)
-        neighbors_v = set(G.neighbors(vertex_index))
+
+        neighbors_v = set([G.vs["label"][v] for v in G.neighbors(vertex_index)])
+
         for Si in S:
             S_new.append(Si & neighbors_v)
             S_new.append(Si - neighbors_v)

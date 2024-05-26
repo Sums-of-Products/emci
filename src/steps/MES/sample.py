@@ -47,6 +47,8 @@ def get_markov_equivalent_topological_orders(U: ig.Graph):
 
         return to
 
+    U.vs["label"] = U.vs.indices.copy()
+
     # pre-process
     AMOs = count(U)
 
