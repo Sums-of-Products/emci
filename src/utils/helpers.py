@@ -83,8 +83,8 @@ def calculate_and_save_edge_ratios(
     return edge_ratios, variation_desc
 
 
-def get_graph_hash(G: nx.Graph) -> str:
-    sorted_edges = sorted([tuple(edge) for edge in G.edges()])
+def get_graph_hash(G: ig.Graph) -> str:
+    sorted_edges = sorted(tuple(G.es))
     edges_str = str(sorted_edges)
     hash_object = hashlib.sha256()
     hash_object.update(edges_str.encode())

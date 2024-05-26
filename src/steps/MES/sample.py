@@ -1,20 +1,24 @@
 import itertools
 import random
 import igraph as ig
-import networkx as nx
 import numpy as np
-from .count import C, FP, count, get_maximal_cliques, v_func
+from .count import C, FP, count, build_clique_graph, v_func
 import matplotlib.pyplot as plt
 
 
-def get_markov_equivalent_topological_orders(U: nx.Graph):
+def get_markov_equivalent_topological_orders(U: ig.Graph):
     # U is a the essential graph with only the undirected edges
 
-    def get_topological_order(UCCG: nx.Graph):
+    def get_topological_order(UCCG: ig.Graph):
         AMO = count(UCCG)
 
-        clique_tree = nx.junction_tree(UCCG)
-        maximal_cliques = get_maximal_cliques(clique_tree)
+        maximal_cliques = [
+            tuple(UCCG.vs["label"][c] for c in clique)
+            for clique in UCCG.maximal_cliques()
+        ]
+
+        clique_tree = build_clique_graph(maximal_cliques)
+
         r = maximal_cliques[0]
 
         if len(maximal_cliques) == 1 and len(maximal_cliques[0]) == 1:
@@ -47,8 +51,8 @@ def get_markov_equivalent_topological_orders(U: nx.Graph):
     AMOs = count(U)
 
     # Gets the UCCGs from the essential graph
-    UCCGs = [U.subgraph(component) for component in nx.connected_components(U)]
-    UCCGs = list(filter(lambda UCCG: len(UCCG.nodes) > 1, UCCGs))
+    UCCGs = [U.subgraph(component) for component in U.clusters()]
+    UCCGs = list(filter(lambda UCCG: UCCG.vcount() > 1, UCCGs))
 
     tos = [get_topological_order(UCCG) for UCCG in UCCGs]
 
@@ -57,11 +61,7 @@ def get_markov_equivalent_topological_orders(U: nx.Graph):
 
 def MES(G: ig.Graph) -> ig.Graph:
     essential_g, _ = CPDAG(G)
-    U = nx.Graph()
-    U.add_nodes_from(np.arange(len(G.vs)))
-
-    for e in essential_g.es:
-        U.add_edge(e.source, e.target)
+    U = essential_g
 
     tos, AMOs = get_markov_equivalent_topological_orders(U)
 
@@ -72,7 +72,9 @@ def MES(G: ig.Graph) -> ig.Graph:
     equivalent_G.add_vertices(len(G.vs))
 
     for to in tos:
-        for source, target in U.edges:
+        for e in U.es:
+            source, target = e.source, e.target
+
             if source not in to or target not in to:
                 continue
             if to.index(source) < to.index(target):
@@ -94,11 +96,8 @@ def test_top_orders_distribution(G):
     # Gets many topological orders and plots a bar plot of it's occurrences
 
     essential_g, _ = CPDAG(G)
-    U = nx.Graph()
-    U.add_nodes_from(np.arange(len(G.vs)))
+    U = essential_g
 
-    for e in essential_g.es:
-        U.add_edge(e.source, e.target)
     all_tos = []
     for i in range(10000):
         tos, AMOs = get_markov_equivalent_topological_orders(U)

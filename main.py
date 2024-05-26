@@ -34,11 +34,12 @@ ax_kde.set_ylabel("")
 ax_kde.get_yaxis().set_visible(False)
 
 colors = ["blue", "green", "yellow", "magenta"]
-ratios = [1]
-variations = [["rev"]]
+ratios = [1, 1, 1, 1]
+variations = [["rev", "mes"]]
+repetitions = 1
 
 for color, variation, ratio in zip(colors, variations, ratios):
-    for i in range(3):
+    for i in range(repetitions):
         n = base_n * ratio
 
         sample_generator = mcmc(
@@ -49,13 +50,13 @@ for color, variation, ratio in zip(colors, variations, ratios):
             1,
             True,
         )
-        G_samples, scores = zip(*sample_generator)
-        G_samples, scores = G_samples[::ratio], scores[::ratio]
+        G, scores = zip(*sample_generator)
+        G, scores = G[::ratio], scores[::ratio]
 
         edge_ratios, variation_desc = calculate_and_save_edge_ratios(
-            G_samples, score_name, n, variation, i
+            G, score_name, n, variation, i
         )
-        np.save(f"res/{score_name}/chain-n={n}.{i}.{variation_desc}", scores)
+        np.save(f"res/{score_name}/chain-n={n}.{i}.{variation_desc}", G)
 
         ax_main.plot(
             range(len(scores)),
@@ -66,11 +67,12 @@ for color, variation, ratio in zip(colors, variations, ratios):
 
         sns.kdeplot(scores, ax=ax_kde, vertical=True, color=color, fill=True)
 
+# exit(1)
 colors = ["cyan", "red"]
 ratios = [1, 1]
 variations = [["rev"], ["rev", "mes"]]
 for color, variation, ratio in zip(colors, variations, ratios):
-    for i in range(3):
+    for i in range(repetitions):
 
         n = base_n * ratio
 
@@ -84,7 +86,7 @@ for color, variation, ratio in zip(colors, variations, ratios):
             G, score_name, n, variation + ["partition"], i
         )
 
-        np.save(f"res/{score_name}/chain-n={n}.{i}.{variation_desc}", score)
+        np.save(f"res/{score_name}/chain-n={n}.{i}.{variation_desc}", G)
 
         ax_main.plot(
             range(len(score)),

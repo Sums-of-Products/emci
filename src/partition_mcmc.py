@@ -98,7 +98,7 @@ def sample_partition(
 
     m = len(partitions)
 
-    j = random.randint(1, nbd(partitions, m))
+    j = random.randint(1, int(nbd(partitions, m)))
     vertices_to_rescore = set()
 
     if j < m:

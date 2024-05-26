@@ -1,4 +1,4 @@
-import networkx as nx
+import igraph as ig
 import random
 from functools import reduce
 from operator import mul
@@ -33,10 +33,13 @@ def v_func(G, r, v, clique_tree):
 
 
 memo = {}
-# G is a UCCG
 
 
-def count(G: nx.Graph, pool=None):
+def count(G: ig.Graph, pool=None):
+    # G is a UCCG
+    for v in G.vs:
+        G.vs["label"] = G.vs.indices.copy()
+
     G_hash = get_graph_hash(G)
 
     try:
@@ -46,26 +49,26 @@ def count(G: nx.Graph, pool=None):
         pass
 
     # Get connected components of the graph
-    G_subs = [G.subgraph(component) for component in nx.connected_components(G)]
+    G_subs = [
+        G.induced_subgraph(component, implementation="copy_and_delete")
+        for component in G.clusters()
+    ]
     results = []
 
     # For each subgraph, count the AMOs and return the product
     for G_sub in G_subs:
         result = 0
-        clique_tree = nx.junction_tree(G_sub)
 
-        # clique_tree = maximal_clique_tree(G)
-        # maximal_cliques = list(map(lambda clique: tuple(sorted(clique)), nx.find_cliques(G)))
-        maximal_cliques = get_maximal_cliques(clique_tree)
+        # cliques by label
+        maximal_cliques = [
+            tuple(G_sub.vs["label"][c] for c in clique)
+            for clique in G_sub.maximal_cliques()
+        ]
+
+        clique_tree = build_clique_graph(maximal_cliques)
 
         r = maximal_cliques[0]
 
-        # Divide into subprocesses only at the root
-        # if pool != None:
-        #     parallel_v_results = [pool.apply_async(v_func, (G_sub, r, v, maximal_clique_tree, record)) for v in maximal_cliques]
-
-        #     result += sum([r.get() for r in parallel_v_results])
-        # else:
         for v in maximal_cliques:
             result += v_func(G_sub, r, v, clique_tree)
 
@@ -80,8 +83,9 @@ def count(G: nx.Graph, pool=None):
 
 def FP(T, r, v):
     res = []
-
-    path = list(nx.shortest_path(T, r, v))
+    r = next((vertex for vertex in T.vs if vertex["label"] == r), None)
+    v = next((vertex for vertex in T.vs if vertex["label"] == v), None)
+    path = list(T.shortest_paths(r, v))[0]
     p = len(path)
 
     for i in range(0, p - 1):
@@ -98,6 +102,21 @@ def FP(T, r, v):
 fmemo = {}
 
 
+def build_clique_graph(cliques: list[set]):
+    clique_graph = ig.Graph()
+    clique_graph.add_vertices(len(cliques))
+    clique_graph.vs["label"] = cliques.copy()
+
+    for i in range(len(cliques)):
+        for j in range(i + 1, len(cliques)):
+            if set(cliques[i]).intersection(
+                cliques[j]
+            ):  # If cliques share at least one node
+                clique_graph.add_edges([(i, j)])
+
+    return clique_graph
+
+
 def fac(n):
     if n in fmemo:
         return fmemo[n]
@@ -112,11 +131,9 @@ def fac(n):
     return res
 
 
-# pmemo is for the recursive nature of this function and should be empty for
-# each iteration
-
-
 def phi(cliquesize, i, fp, pmemo):
+    # pmemo is for the recursive nature of this function and should be empty for
+    # each iteration
     if i in pmemo:
         return pmemo[i]
 
@@ -127,28 +144,10 @@ def phi(cliquesize, i, fp, pmemo):
     return sum
 
 
-def maximal_clique_tree(G: nx.Graph):
-    clique_tree = nx.Graph()
-    maximal_cliques = list(
-        map(lambda clique: tuple(sorted(clique)), nx.find_cliques(G))
-    )
+def C(G: ig.Graph, K: set):
 
-    clique_tree.add_nodes_from(maximal_cliques)
-
-    # Builds graph out of maximal cliques by content intersection
-    for clique1 in maximal_cliques:
-        for clique2 in maximal_cliques:
-            if clique1 != clique2 and len(set(clique1).intersection(clique2)) > 0:
-                # if(len([edge for edge in clique_tree.edges() if clique1 in edge]) == 0):
-                clique_tree.add_edge(clique1, clique2)
-
-    clique_tree = nx.maximum_spanning_tree(clique_tree, algorithm="kruskal")
-    return clique_tree
-
-
-# C_G(K) - algorithm 4
-def C(G: nx.Graph, K: set):
-    S = [K.copy(), set(G.nodes) - K]
+    # C_G(K) - algorithm 4
+    S = [K.copy(), set(G.vs["label"]) - K]
 
     to = []
     L = set()
@@ -164,17 +163,20 @@ def C(G: nx.Graph, K: set):
 
         if not any(v in el for el in L) and (v not in K):
             L.add(frozenset(X))
-            # Output the undirected components of G[X].
+
+            vertex_indices = [v.index for v in G.vs if v["label"] in X]
             subgraphs = [
                 G.subgraph(component)
-                for component in nx.connected_components(G.subgraph(X))
+                for component in G.subgraph(vertex_indices).clusters()
             ]
 
+            # Output the undirected components of G[X].
             output.extend(subgraphs)
 
         X.remove(v)
         S_new = []
-        neighbors_v = set(G.neighbors(v))
+        vertex_index = next((node.index for node in G.vs if node["label"] == v), None)
+        neighbors_v = set(G.neighbors(vertex_index))
         for Si in S:
             S_new.append(Si & neighbors_v)
             S_new.append(Si - neighbors_v)
@@ -184,14 +186,30 @@ def C(G: nx.Graph, K: set):
     return output
 
 
-# Get maximal cliques out of a clique tree that includes minimal seperators
+def maximal_clique_tree(G: ig.Graph):
+    clique_tree = ig.Graph()
+    maximal_cliques = list(map(lambda clique: tuple(sorted(clique)), G.cliques))
+
+    clique_tree.add_nodes_from(maximal_cliques)
+
+    # Builds graph out of maximal cliques by content intersection
+    for clique1 in maximal_cliques:
+        for clique2 in maximal_cliques:
+            if clique1 != clique2 and len(set(clique1).intersection(clique2)) > 0:
+                # if(len([edge for edge in clique_tree.edges() if clique1 in edge]) == 0):
+                clique_tree.add_edge(clique1, clique2)
+
+    # clique_tree = nx.maximum_spanning_tree(clique_tree, algorithm="kruskal")
+    return clique_tree
 
 
-def get_maximal_cliques(clique_tree: nx.Graph):
+def get_maximal_cliques(cliques: ig.Graph):
+    # Get maximal cliques out of a clique tree that includes minimal seperators
+
     maximal_cliques = []
-    for clique1 in clique_tree.nodes:
+    for clique1 in cliques:
         is_maximal = True
-        for clique2 in clique_tree.nodes:
+        for clique2 in cliques:
             if clique1 != clique2 and set(clique1).issubset(clique2):
                 is_maximal = False
         if is_maximal:

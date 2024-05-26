@@ -60,7 +60,7 @@ def propose_next(
 
     new_edge_reversal_move = REV(score_manager).new_edge_reversal_move
 
-    if is_MES and np.random.uniform() < 0.06:
+    if is_MES and np.random.uniform() < 0.005:
         return MES(G_i_plus_1)
     if is_REV and np.random.uniform() < 0.07:
         return new_edge_reversal_move(G_i_plus_1)
