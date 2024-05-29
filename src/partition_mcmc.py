@@ -47,6 +47,7 @@ def partition_mcmc(
 
             # Markov Equivalence step runs every time REV is sampled
             if is_MES:
+                G_i.vs["label"] = G.vs.indices
                 G_i, AMOs = MES(G_i)
 
             A_i = create_pratition(G_i)

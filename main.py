@@ -22,6 +22,7 @@ score_manager = ScoreManager(score_name)
 # Initial graph
 emptyG = ig.Graph(directed=True)
 emptyG.add_vertices(len(score_manager.scores))
+emptyG.vs["label"] = emptyG.vs.indices.copy()
 
 fig, (ax_main, ax_kde) = plt.subplots(
     nrows=1, ncols=2, gridspec_kw={"width_ratios": [4, 1]}, figsize=(8, 4)
@@ -35,7 +36,7 @@ ax_kde.get_yaxis().set_visible(False)
 
 colors = ["blue", "green", "yellow", "magenta"]
 ratios = [1, 1, 1, 1]
-variations = [["rev", "mes"]]
+variations = [["rev"], ["rev", "mes"]]
 repetitions = 1
 
 for color, variation, ratio in zip(colors, variations, ratios):
@@ -67,7 +68,10 @@ for color, variation, ratio in zip(colors, variations, ratios):
 
         sns.kdeplot(scores, ax=ax_kde, vertical=True, color=color, fill=True)
 
-# exit(1)
+emptyG = ig.Graph(directed=True)
+emptyG.add_vertices(len(score_manager.scores))
+emptyG.vs["label"] = emptyG.vs.indices.copy()
+
 colors = ["cyan", "red"]
 ratios = [1, 1]
 variations = [["rev"], ["rev", "mes"]]
