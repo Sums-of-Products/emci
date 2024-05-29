@@ -9,11 +9,11 @@ v_func_memo = {}
 
 
 def v_func(G, r, v, clique_tree):
-    try:
-        res = v_func_memo[frozenset(v)]
-        return res
-    except KeyError:
-        pass
+    # try:
+    #     res = v_func_memo[frozenset(v)]
+    #     return res
+    # except KeyError:
+    #     pass
 
     K = set(v)
     subproblems = C(G, K)
@@ -37,16 +37,16 @@ memo = {}
 
 def count(G: ig.Graph, pool=None):
     # G is a UCCG
+    # if not hasattr(G.vs, "labels"):
+    #     G.vs["label"] = G.vs.indices.copy()
 
-    G.vs["label"] = G.vs.indices.copy()
+    # G_hash = get_graph_hash(G)
 
-    G_hash = get_graph_hash(G)
-
-    try:
-        res = memo[G_hash]
-        return res
-    except KeyError:
-        pass
+    # try:
+    #     res = memo[G_hash]
+    #     return res
+    # except KeyError:
+    #     pass
 
     # Get connected components of the graph
     G_subs = [
@@ -76,7 +76,7 @@ def count(G: ig.Graph, pool=None):
 
     # Product of each component
     result = reduce(lambda x, y: x * y, results, 1)
-    memo[G_hash] = result
+    # memo[G_hash] = result
 
     return result
 

@@ -4,6 +4,7 @@ import igraph as ig
 import numpy as np
 from .count import C, FP, count, build_clique_graph, v_func
 import matplotlib.pyplot as plt
+import copy
 
 
 def get_markov_equivalent_topological_orders(U: ig.Graph):
@@ -47,7 +48,8 @@ def get_markov_equivalent_topological_orders(U: ig.Graph):
 
         return to
 
-    U.vs["label"] = U.vs.indices.copy()
+    # if not hasattr(G.vs, "labels"):
+    #     G.vs["label"] = G.vs.indices.copy()
 
     # pre-process
     AMOs = count(U)
@@ -70,8 +72,8 @@ def MES(G: ig.Graph) -> ig.Graph:
     if len(tos) == 0:
         return G, AMOs
 
-    equivalent_G = ig.Graph(directed=True)
-    equivalent_G.add_vertices(len(G.vs))
+    equivalent_G: ig.Graph = G.copy()
+    equivalent_G.delete_edges(equivalent_G.es)
 
     for to in tos:
         for e in U.es:
@@ -157,10 +159,11 @@ def is_strongly_protected(G: ig.Graph, G_lines: ig.Graph, e: ig.Edge):
 
 
 # Returns a tuple (undirected, directed) graphs
-def CPDAG(D: ig.Graph) -> (ig.Graph, ig.Graph):
-    G_i: ig.Graph() = D.copy()
-    G_lines = ig.Graph()
-    G_lines.add_vertices(len(G_i.vs))
+def CPDAG(D: ig.Graph) -> tuple[ig.Graph, ig.Graph]:
+    G_i: ig.Graph = D.copy()
+    G_lines = D.copy()
+    G_lines.to_undirected()
+    G_lines.delete_edges(G_lines.es)
 
     G_i_plus_1 = undirect_non_strongly_protected_arrows(G_i, G_lines)
 
