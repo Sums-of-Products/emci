@@ -10,7 +10,12 @@ from src.steps import MES, REV
 
 from src.utils import ScoreManager
 
-max_parents_size = 3
+
+max_parents_size = 0
+
+
+def calculate_max_parent(scores: list[frozenset]):
+    return max(len(fset) for fset in scores)
 
 
 def partition_mcmc(
@@ -19,7 +24,9 @@ def partition_mcmc(
     """Generator.
     yields (Partition, score), (Graph, score)
     """
-
+    global max_parents_size
+    max_parents_size = calculate_max_parent(score_manager.scores[0])
+    print(f"Max in-degree is: {max_parents_size}")
     is_MES = "mes" in additional_steps
     is_REV = "rev" in additional_steps
 
@@ -161,6 +168,7 @@ def P_v(
 def get_permissible_parent_sets(partitions: list[set], v: int):
     # Only parent sets with at least one member in the partition element
     # immediately to the right need to be included.
+    global max_parents_size
     partition_index = 0
     v_index_for_searching = 0
 

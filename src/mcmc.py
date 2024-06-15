@@ -35,9 +35,7 @@ def mcmc(
         # Temperature
         likelihood_i_p_1 *= beta
 
-        if step_type == "MES":
-            G_i, likelihood_i, prior_i = G_i_plus_1, likelihood_i_p_1, prior_i_p_1
-        if step_type == "REV":
+        if step_type == "MES" or step_type == "REV":
             G_i, likelihood_i, prior_i = G_i_plus_1, likelihood_i_p_1, prior_i_p_1
         else:
             A = np.min([1, R(likelihood_i, likelihood_i_p_1, prior_i, prior_i_p_1)])
@@ -62,10 +60,10 @@ def propose_next(
 
     new_edge_reversal_move = REV(score_manager).new_edge_reversal_move
 
-    if is_MES and np.random.uniform() < 0.07:
+    if is_MES and np.random.uniform() < 0.2:
         new_G, AMOs = MES(G_i_plus_1)
         return new_G, "MES"
-    if is_REV and np.random.uniform() < 0.07:
+    if is_REV and np.random.uniform() <= 0.07:
         return new_edge_reversal_move(G_i_plus_1)
 
     if G_i.are_connected(a, b):

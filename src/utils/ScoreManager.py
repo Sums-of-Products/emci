@@ -1,6 +1,6 @@
 import igraph as ig
 import numpy as np
-from scipy.special import binom
+from scipy.special import comb
 
 from .helpers import read_scores_from_file
 
@@ -9,15 +9,15 @@ class ScoreManager:
     def __init__(self, score_name: str):
         self.scores = read_scores_from_file(f"data/scores/{score_name}.jkl")
 
-    def P(self, M: ig.Graph):
-        def f(n, G_i_count):
-            return 1 / binom(n - 1, G_i_count)
+    # def P(self, M: ig.Graph):
+    #     def f(n, G_i_count):
+    #         return 1 / binom(n - 1, G_i_count)
 
-        G_i_count = np.fromiter(map(lambda v: len(list(M.predecessors(v))), M.vs), int)
+    #     G_i_count = np.fromiter(map(lambda v: len(list(M.predecessors(v))), M.vs), int)
 
-        return f(len(list(M.vs)), G_i_count).prod()
+    #     return f(len(list(M.vs)), G_i_count).prod()
 
-    def get_local_likelihood(self, v, pa_i, n):
+    def get_local_likelihood(self, v, pa_i):
         try:
             res = self.scores[v][pa_i]
         except KeyError:
@@ -29,11 +29,11 @@ class ScoreManager:
         k = len(pa_i)
 
         # Use Koivisto prior
-        prior = np.log(1 / binom(n - 1, k))
-        return prior
+        # return np.log(1 / comb(int(n) - 1, k))
+        return -np.log(comb(int(n) - 1, k))
 
     def get_local_score(self, v, pa_i, n):
-        return self.get_local_likelihood(v, pa_i, n) + self.get_local_prior(v, pa_i, n)
+        return self.get_local_likelihood(v, pa_i) + self.get_local_prior(v, pa_i, n)
 
     def get_score(self, G: ig.Graph):
         likelihood = 0
@@ -44,7 +44,7 @@ class ScoreManager:
         for v in G.vs:
             pi = frozenset(map(lambda x: x, G.predecessors(v)))
             local_score, local_prior = self.get_local_likelihood(
-                v.index, pi, n
+                v.index, pi
             ), self.get_local_prior(v.index, pi, n)
 
             # If it is inf, just return
@@ -62,7 +62,7 @@ def R(likelihood_i, likelihood_i_p_1, prior_i, prior_i_p_1):
         return 0
 
     # Prevent overlow
-    if likelihood_i_p_1 - likelihood_i > 400:
+    if likelihood_i_p_1 - likelihood_i > 100:
         res = 1
     else:
         res = np.exp(likelihood_i_p_1 + prior_i_p_1 - likelihood_i - prior_i)
