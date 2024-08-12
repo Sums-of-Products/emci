@@ -47,7 +47,7 @@ def partition_mcmc(
     for i in pbar:
         skip = False
 
-        if is_REV and np.random.uniform() < 0.067:
+        if is_REV and np.random.uniform() < 0.07:
             m_i = len(A_i)
             G_i = sample_dag(A_i, len(G.vs), score_manager)
             G_i, type = REV_move(G_i)

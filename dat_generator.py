@@ -3,10 +3,10 @@ from pgmpy.sampling import BayesianModelSampling
 import pandas as pd
 
 # Load the .bif file
-network_name = "sachs"
+network_name = "hailfinder"
 
-reader = BIFReader(f"../data/networks/{network_name}.bif")
-sample_size = 10000
+reader = BIFReader(f"./data/networks/{network_name}.bif")
+sample_size = 100
 
 model = reader.get_model()
 
@@ -24,7 +24,7 @@ mapping = {
 samples = samples.replace(mapping)
 
 # Save samples to .dat file
-with open(f"{network_name}-{sample_size}.dat", "w") as f:
+with open(f"./data/data/{network_name}-{sample_size}.dat", "w") as f:
     # Write variable names (0 to n)
     f.write(" ".join(map(str, range(len(model.nodes())))) + "\n")
 

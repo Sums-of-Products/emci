@@ -33,40 +33,42 @@ ax_main.set_ylabel("Scores")
 ax_kde.set_xlabel("Density")
 ax_kde.set_ylabel("")
 ax_kde.get_yaxis().set_visible(False)
+repetitions = 3
 
-colors = ["blue", "green", "yellow", "magenta"]
-ratios = [1, 1, 1, 1]
-variations = [["rev"], ["rev", "mes"]]
-repetitions = 1
 
-for color, variation, ratio in zip(colors, variations, ratios):
-    for i in range(repetitions):
-        n = base_n * ratio
+# colors = ["blue", "green", "magenta", "yellow"]
+# ratios = [10, 10, 1, 1]
+# variations = [[""], ["mes"]]
 
-        sample_generator = mcmc(
-            emptyG,
-            n,
-            variation,
-            score_manager,
-            1,
-            True,
-        )
-        G, scores = zip(*sample_generator)
-        G, scores = G[::ratio], scores[::ratio]
 
-        edge_ratios, variation_desc = calculate_and_save_edge_ratios(
-            G, score_name, n, variation, i
-        )
-        np.save(f"res/{score_name}/chain-n={n}.{i}.{variation_desc}", G)
+# for color, variation, ratio in zip(colors, variations, ratios):
+#     for i in range(repetitions):
+#         n = base_n * ratio
 
-        ax_main.plot(
-            range(len(scores)),
-            scores,
-            color=color,
-            label=variation_desc if i == 0 else "",
-        )
+#         sample_generator = mcmc(
+#             emptyG,
+#             n,
+#             variation,
+#             score_manager,
+#             1,
+#             True,
+#         )
+#         G, scores = zip(*sample_generator)
+#         G, scores = G[::ratio], scores[::ratio]
 
-        sns.kdeplot(scores, ax=ax_kde, vertical=True, color=color, fill=True)
+#         edge_ratios, variation_desc = calculate_and_save_edge_ratios(
+#             G, score_name, n, variation, i
+#         )
+#         np.save(f"res/{score_name}/chain-n={base_n}.{i}.{variation_desc}", G)
+
+#         ax_main.plot(
+#             range(len(scores)),
+#             scores,
+#             color=color,
+#             label=variation_desc if i == 0 else "",
+#         )
+
+#         sns.kdeplot(scores, ax=ax_kde, vertical=True, color=color, fill=True)
 
 emptyG = ig.Graph(directed=True)
 emptyG.add_vertices(len(score_manager.scores))
@@ -74,7 +76,7 @@ emptyG.vs["label"] = emptyG.vs.indices.copy()
 
 colors = ["cyan", "red"]
 ratios = [1, 1]
-variations = [["rev"], ["rev", "mes"]]
+variations = [["rev", "mes"]]
 for color, variation, ratio in zip(colors, variations, ratios):
     for i in range(repetitions):
 
@@ -92,14 +94,14 @@ for color, variation, ratio in zip(colors, variations, ratios):
 
         np.save(f"res/{score_name}/chain-n={n}.{i}.{variation_desc}", G)
 
-        ax_main.plot(
-            range(len(score)),
-            score,
-            color=color,
-            label=variation_desc if i == 0 else None,
-        )
-        sns.kdeplot(score, ax=ax_kde, vertical=True, color=color, fill=True)
+        # ax_main.plot(
+        #     range(len(score)),
+        #     score,
+        #     color=color,
+        #     label=variation_desc if i == 0 else None,
+        # )
+        # sns.kdeplot(score, ax=ax_kde, vertical=True, color=color, fill=True)
 
-ax_main.legend(loc="upper left")
-plt.legend()
-plt.show()
+# ax_main.legend(loc="upper left")
+# plt.legend()
+# plt.show()
