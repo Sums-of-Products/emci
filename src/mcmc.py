@@ -14,6 +14,7 @@ def mcmc(
     score_manager: ScoreManager,
     beta=1,
     show_progress=False,
+    mes_prob=0.15,
 ) -> Iterator[tuple[ig.Graph, float]]:
     """Generator.
     yields (Graph, score)
@@ -27,7 +28,9 @@ def mcmc(
     )
 
     for i in pbar:
-        G_i_plus_1, step_type = propose_next(G_i, additional_steps, score_manager)
+        G_i_plus_1, step_type = propose_next(
+            G_i, additional_steps, score_manager, mes_prob
+        )
 
         likelihood_i, prior_i = score_manager.get_score(G_i)
         likelihood_i_p_1, prior_i_p_1 = score_manager.get_score(G_i_plus_1)
@@ -57,7 +60,10 @@ def mcmc(
 
 
 def propose_next(
-    G_i: ig.Graph, additional_steps: list[str], score_manager: ScoreManager
+    G_i: ig.Graph,
+    additional_steps: list[str],
+    score_manager: ScoreManager,
+    mes_prob: float,
 ):
     a, b = random.sample(list(G_i.vs), k=2)
     G_i_plus_1: ig.Graph = G_i.copy()
@@ -67,7 +73,7 @@ def propose_next(
 
     new_edge_reversal_move = REV(score_manager).new_edge_reversal_move
 
-    if is_MES and np.random.uniform() <= 0.05:
+    if is_MES and np.random.uniform() <= mes_prob:
         new_G, AMOs = MES(G_i_plus_1)
         return new_G, "MES"
     if is_REV and np.random.uniform() <= 0.07:

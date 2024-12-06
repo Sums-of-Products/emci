@@ -2,6 +2,7 @@ import numpy as np
 from scipy.special import comb
 
 
+# Transforms scores with sparse prior
 def adjust_scores(file_path, output_path):
     with open(file_path, "r") as file:
         lines = file.readlines()

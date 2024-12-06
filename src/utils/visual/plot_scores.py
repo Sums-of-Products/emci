@@ -6,19 +6,19 @@ import igraph as ig
 from src.utils import ScoreManager
 
 chain_type_to_label = {
-    # "": "Basic",
+    "": "Basic",
     # "REV MES": "Structural w/ REV & MES",
-    # "REV": "Basic w/ REV",
-    # "MES": "Basic w/ MES",
-    "REV Partition": "Partition w/ REV",
-    "REV MES Partition": "Partition w/ REV & MES",
+    "REV": "Basic w/ REV",
+    "MES": "Basic w/ MES",
+    # "REV Partition": "Partition w/ REV",
+    # "REV MES Partition": "Partition w/ REV & MES",
 }
 
 chain_type_to_colour = {
     "": "green",
     "REV MES": "violet",
     "REV": "blue",
-    "MES": "red",
+    "MES": "cyan",
     "REV Partition": "cyan",
     "REV MES Partition": "magenta",
 }
