@@ -38,14 +38,8 @@ def mcmc(
         # Temperature
         likelihood_i_p_1 *= beta
 
+        # No acceptence needed for MES or REV
         if step_type == "MES" or step_type == "REV":
-            # print(likelihood_i, likelihood_i_p_1)
-            # print(prior_i, prior_i_p_1)
-            # print(
-            #     set(G_i.get_edgelist()).symmetric_difference(
-            #         set(G_i_plus_1.get_edgelist())
-            #     )
-            # )
             G_i, likelihood_i, prior_i = G_i_plus_1, likelihood_i_p_1, prior_i_p_1
         else:
             A = np.min([1, R(likelihood_i, likelihood_i_p_1, prior_i, prior_i_p_1)])

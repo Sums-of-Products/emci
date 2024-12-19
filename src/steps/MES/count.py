@@ -37,6 +37,7 @@ memo = {}
 
 def count(G: ig.Graph, pool=None):
     # G is a UCCG
+
     # if not hasattr(G.vs, "labels"):
     #     G.vs["label"] = G.vs.indices.copy()
 
