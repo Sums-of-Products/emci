@@ -12,7 +12,7 @@ warnings.filterwarnings("ignore")
 sns.set_theme(style="whitegrid")
 
 if len(sys.argv) < 4:
-    print("Usage: python main.py <score name> <n>")
+    print("Usage: python main.py <score name> <n> <repetitions>")
     sys.exit(1)
 
 score_name = sys.argv[1]
